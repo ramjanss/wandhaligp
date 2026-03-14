@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Complaints</title>
+<link rel="stylesheet" href="admin.css">
+
+<style>
+.filter-btn{
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  background:#1e3a8a;
+  color:white;
+  cursor:pointer;
+}
+.filter-btn:hover{
+  opacity:0.8;
+}
+.export-btn{
+  background:#16a34a;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="admin-container">
+
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+
+    <a href="./admin-dashboard.html">Dashboard</a>
+  <a href="./admin-members.html">Members</a>
+  <a href="./admin-notices.html">Notices</a>
+  <a href="./admin-gallery.html">Gallery</a>
+  <a href="./admin-events.html">Events</a>
+  <a href="./admin-complaints.html" class="active">Complaints</a>
+    
+    <button id="logoutBtn">Logout</button>
+  </aside>
+
+  <main class="content">
+
+    <h1>📨 Manage Complaints</h1>
+
+    <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:center;">
+
+      <input 
+        type="text" 
+        id="searchInput"
+        placeholder="Search by Tracking ID or Name"
+        style="padding:8px 12px; border-radius:6px; border:1px solid #ccc; width:250px;"
+      >
+
+      <button onclick="filterComplaints('all')" class="filter-btn">All</button>
+      <button onclick="filterComplaints('Pending')" class="filter-btn">Pending</button>
+      <button onclick="filterComplaints('Resolved')" class="filter-btn">Resolved</button>
+
+      <button id="exportBtn" class="filter-btn export-btn">
+        Export to Excel
+      </button>
+
+    </div>
+
+    <div id="complaintsContainer"></div>
+
+  </main>
+
+</div>
+
+<!-- Excel Library -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import { collection, getDocs, updateDoc, doc, query, orderBy }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const container = document.getElementById("complaintsContainer");
+
+let allComplaints = [];
+
+async function loadComplaints(){
+
+  container.innerHTML = "Loading...";
+
+  const q = query(collection(db,"complaints"), orderBy("createdAt","desc"));
+  const snapshot = await getDocs(q);
+
+  allComplaints = [];
+
+  snapshot.forEach(docSnap=>{
+    allComplaints.push({
+      id: docSnap.id,
+      ...docSnap.data()
+    });
+  });
+
+  renderComplaints();
+}
+
+function renderComplaints(){
+
+  container.innerHTML = "";
+
+  if(allComplaints.length === 0){
+    container.innerHTML = "<p>No complaints found.</p>";
+    return;
+  }
+
+  allComplaints.forEach(c=>{
+
+    const createdDate = c.createdAt?.toDate();
+    const formattedDate = createdDate
+      ? createdDate.toLocaleString()
+      : "N/A";
+
+    const statusColor =
+      c.status === "Resolved" ? "#16a34a" :
+      c.status === "Rejected" ? "#ef4444" :
+      "#f59e0b";
+
+    const card = document.createElement("div");
+    card.style.background = "#fff";
+    card.style.padding = "20px";
+    card.style.borderRadius = "12px";
+    card.style.marginBottom = "20px";
+    card.style.boxShadow = "0 10px 25px rgba(0,0,0,0.08)";
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;">
+        <strong>Tracking ID: ${c.trackingId}</strong>
+        <span style="background:${statusColor};color:white;padding:6px 12px;border-radius:20px;font-size:12px;">
+          ${c.status || "Submitted"}
+        </span>
+      </div>
+
+      <hr style="margin:12px 0;">
+
+      <strong>Name:</strong> ${c.name}<br>
+      <strong>Phone:</strong> ${c.phone}<br>
+      <strong>Date:</strong> ${formattedDate}<br><br>
+
+      <strong>Message:</strong>
+      <div style="background:#f3f4f6;padding:10px;border-radius:8px;margin-top:5px;">
+        ${c.message}
+      </div>
+
+      <br>
+
+      <strong>Admin Note:</strong>
+      <textarea id="note-${c.id}" style="width:100%;margin-top:5px;padding:6px;">${c.adminNote || ""}</textarea>
+
+      <br><br>
+
+      <strong>Update Status:</strong>
+      <select id="status-${c.id}" style="padding:6px;margin-top:5px;">
+        <option value="Submitted">Submitted</option>
+        <option value="Accepted">Accepted</option>
+        <option value="In Review">In Review</option>
+        <option value="Resolved">Resolved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+
+      <br><br>
+
+      <button id="save-${c.id}" style="
+        background:#1e3a8a;
+        color:white;
+        border:none;
+        padding:8px 14px;
+        border-radius:6px;
+        cursor:pointer;
+      ">
+        Save Update
+      </button>
+
+      <div id="rejectReasonBox-${c.id}" style="display:none;margin-top:10px;">
+        <strong>Rejection Reason:</strong>
+        <textarea id="reject-${c.id}" style="width:100%;margin-top:5px;padding:6px;">${c.rejectReason || ""}</textarea>
+      </div>
+    `;
+
+    container.appendChild(card);
+
+    const statusSelect = document.getElementById(`status-${c.id}`);
+    const saveBtn = document.getElementById(`save-${c.id}`);
+    const noteInput = document.getElementById(`note-${c.id}`);
+    const rejectBox = document.getElementById(`rejectReasonBox-${c.id}`);
+    const rejectInput = document.getElementById(`reject-${c.id}`);
+
+    statusSelect.value = c.status || "Submitted";
+
+    if(c.status === "Rejected"){
+      rejectBox.style.display = "block";
+    }
+
+    statusSelect.onchange = () => {
+      if(statusSelect.value === "Rejected"){
+        rejectBox.style.display = "block";
+      } else {
+        rejectBox.style.display = "none";
+      }
+    };
+
+    saveBtn.onclick = async () => {
+
+      const updatedStatus = statusSelect.value;
+
+      await updateDoc(doc(db,"complaints",c.id),{
+        status: updatedStatus,
+        adminNote: noteInput.value,
+        rejectReason: updatedStatus === "Rejected" ? rejectInput.value : "",
+        updatedAt: new Date()
+      });
+
+      alert("Updated Successfully");
+      loadComplaints();
+    };
+
+  });
+}
+
+loadComplaints();
+
+</script>
+
+</body>
+</html>

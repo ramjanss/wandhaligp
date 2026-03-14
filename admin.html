@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+.admin-nav{
+  display:flex;
+  gap:15px;
+  margin-bottom:30px;
+  flex-wrap:wrap;
+}
+.admin-nav button{
+  padding:10px 18px;
+  border:none;
+  background:#1e3a8a;
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+  transition:0.3s;
+}
+.admin-nav button:hover{
+  background:#2563eb;
+}
+.admin-section{ display:none; }
+.admin-section.active{ display:block; }
+</style>
+</head>
+
+<body>
+<section class="section">
+
+<h1>Admin Dashboard</h1>
+
+<div class="admin-nav">
+  <a href="admin.html"><button>Dashboard</button></a>
+  <a href="admin/admin-members.html"><button>Members</button></a>
+  <a href="admin/admin-notices.html"><button>Notices</button></a>
+  <a href="admin/admin-gallery.html"><button>Gallery</button></a>
+  <a href="admin/admin-events.html"><button>Events</button></a>
+  <a href="admin/admin-complaints.html"><button>Complaints</button></a>
+  <button id="logoutBtn">Logout</button>
+</div>
+
+
+<!-- DASHBOARD -->
+<div id="stats" class="admin-section active">
+  <h2>📊 Overview</h2>
+  <div id="statsContainer" style="display:flex;gap:20px;flex-wrap:wrap;"></div>
+</div>
+
+<!-- MEMBERS -->
+<div id="members" class="admin-section">
+
+  <h2>👥 Add Member</h2>
+
+  <input type="text" id="memberName" placeholder="Name"><br><br>
+  <input type="text" id="memberRole" placeholder="Role"><br><br>
+  <input type="text" id="memberPhone" placeholder="Phone"><br><br>
+
+  <select id="memberType">
+    <option value="leader">Leader</option>
+    <option value="body">Body Member</option>
+    <option value="employee">Employee</option>
+  </select><br><br>
+
+  <input type="number" id="memberOrder" placeholder="Display Order"><br><br>
+  <input type="file" id="memberPhoto" accept="image/*"><br><br>
+
+  <button id="addMemberBtn">Add Member</button>
+
+  <hr><br>
+
+  <h3>Existing Members</h3>
+  <div id="memberList"></div>
+
+</div>
+
+</section>
+
+<script type="module">
+
+import { auth, db, storage } from "./js/firebase.js";
+import { onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL, deleteObject } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+/* ================= AUTH ================= */
+
+const allowedAdminEmail = "ramjansocial@gmail.com";
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    window.location.href="login.html";
+    return;
+  }
+  if(user.email!==allowedAdminEmail){
+    alert("Access Denied");
+    window.location.href="index.html";
+  }
+});
+
+document.getElementById("logoutBtn").onclick=async()=>{
+  await signOut(auth);
+  window.location.href="login.html";
+};
+
+/* ================= SECTION SWITCH ================= */
+
+window.showSection = (id)=>{
+  document.querySelectorAll(".admin-section").forEach(sec=>{
+    sec.classList.remove("active");
+  });
+  document.getElementById(id).classList.add("active");
+};
+
+/* ================= DASHBOARD STATS ================= */
+
+async function loadStats(){
+  const notices = await getDocs(collection(db,"notices"));
+  const complaints = await getDocs(collection(db,"complaints"));
+
+  let resolved=0;
+  complaints.forEach(d=>{
+    if(d.data().status==="Resolved") resolved++;
+  });
+
+  document.getElementById("statsContainer").innerHTML=`
+    <div class="card">Notices: ${notices.size}</div>
+    <div class="card">Complaints: ${complaints.size}</div>
+    <div class="card">Resolved: ${resolved}</div>
+  `;
+}
+loadStats();
+
+/* ================= MEMBER SYSTEM ================= */
+
+const memberList=document.getElementById("memberList");
+
+async function loadMembersAdmin(){
+  memberList.innerHTML="Loading...";
+
+  const q=query(collection(db,"members"),orderBy("order"));
+  const snapshot=await getDocs(q);
+
+  memberList.innerHTML="";
+
+  if(snapshot.empty){
+    memberList.innerHTML="No Members Found";
+    return;
+  }
+
+  snapshot.forEach(docSnap=>{
+    const m=docSnap.data();
+
+    const div=document.createElement("div");
+    div.style.marginBottom="20px";
+    div.innerHTML=`
+      <img src="${m.photoUrl || ''}" width="80" style="border-radius:50%;object-fit:cover;">
+      <strong>${m.name}</strong> (${m.role}) - ${m.type}
+      <button style="margin-left:10px;">Delete</button>
+      <hr>
+    `;
+
+    div.querySelector("button").onclick=async()=>{
+      if(!confirm("Delete member?")) return;
+
+      try{
+        if(m.storagePath){
+          await deleteObject(ref(storage,m.storagePath));
+        }
+        await deleteDoc(doc(db,"members",docSnap.id));
+        loadMembersAdmin();
+      }catch(error){
+        alert("Delete failed");
+      }
+    };
+
+    memberList.appendChild(div);
+  });
+}
+loadMembersAdmin();
+
+/* ================= ADD MEMBER ================= */
+
+document.getElementById("addMemberBtn").onclick=async()=>{
+
+  const name=document.getElementById("memberName").value.trim();
+  const role=document.getElementById("memberRole").value.trim();
+  const phone=document.getElementById("memberPhone").value.trim();
+  const type=document.getElementById("memberType").value;
+  const order=Number(document.getElementById("memberOrder").value);
+  const file=document.getElementById("memberPhoto").files[0];
+
+  if(!name||!role){
+    alert("Fill required fields");
+    return;
+  }
+
+  let photoUrl="";
+  let storagePath="";
+
+  try{
+
+    if(file){
+      const storageRef=ref(storage,"members/"+Date.now()+"_"+file.name);
+      await uploadBytes(storageRef,file);
+      photoUrl=await getDownloadURL(storageRef);
+      storagePath=storageRef.fullPath;
+    }
+
+    await addDoc(collection(db,"members"),{
+      name,role,phone,type,order,
+      photoUrl,storagePath,
+      created:new Date()
+    });
+
+    alert("Member Added Successfully");
+
+    document.getElementById("memberName").value="";
+    document.getElementById("memberRole").value="";
+    document.getElementById("memberPhone").value="";
+    document.getElementById("memberOrder").value="";
+    document.getElementById("memberPhoto").value="";
+
+    loadMembersAdmin();
+
+  }catch(error){
+    alert("Upload Failed");
+  }
+
+};
+
+</script>
+</body>
+</html>

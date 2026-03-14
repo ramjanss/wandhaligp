@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register Complaint</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(135deg,#1e3a8a,#0f172a);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+.form-container{
+  background:white;
+  padding:40px;
+  border-radius:20px;
+  width:520px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
+
+h2{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+input, textarea{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  margin-bottom:15px;
+  font-family:'Poppins',sans-serif;
+}
+
+textarea{
+  resize:none;
+  height:100px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  background:#1e3a8a;
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:15px;
+}
+
+button:hover{
+  opacity:0.9;
+}
+
+.success-box{
+  margin-top:20px;
+  padding:15px;
+  background:#dcfce7;
+  border-radius:12px;
+  color:#166534;
+  font-weight:600;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="form-container">
+
+<h2>📝 Register Complaint</h2>
+
+<input type="text" id="name" placeholder="Your Name">
+<input type="text" id="phone" placeholder="Mobile Number">
+<textarea id="message" placeholder="Describe your issue"></textarea>
+
+<button id="submitBtn">Submit Complaint</button>
+
+<div id="result"></div>
+
+</div>
+
+<script type="module">
+
+import { db } from "./js/firebase.js";
+import { collection, addDoc }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const resultDiv = document.getElementById("result");
+
+document.getElementById("submitBtn").onclick = async () => {
+
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const message = document.getElementById("message").value.trim();
+
+  if(!name || !phone || !message){
+    alert("All fields are required.");
+    return;
+  }
+
+  if(phone.length < 10){
+    alert("Enter valid mobile number.");
+    return;
+  }
+
+  const trackingId = "GP" + Date.now();
+
+  try{
+
+    await addDoc(collection(db,"complaints"),{
+      trackingId: trackingId,
+      name: name,
+      phone: phone,
+      message: message,
+      status: "Submitted",
+      adminNote: "",
+      rejectReason: "",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    resultDiv.innerHTML = `
+      <div class="success-box">
+        Complaint Registered Successfully!<br><br>
+        Your Tracking ID:<br>
+        <strong>${trackingId}</strong>
+      </div>
+    `;
+
+    document.getElementById("name").value="";
+    document.getElementById("phone").value="";
+    document.getElementById("message").value="";
+
+  }catch(error){
+    alert("Failed to submit complaint.");
+    console.error(error);
+  }
+
+};
+
+</script>
+
+</body>
+</html>
