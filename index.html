@@ -1532,8 +1532,10 @@ async function loadGallery(){
   const container = document.getElementById("galleryContainer");
   container.innerHTML = "";
 
-  const snap = await getDocs(collection(db,"gallery"));
+const q = query(collection(db,"gallery"), where("villageId","==","wandhali"));
+const snap = await getDocs(q);
 
+  
   let images = [];
 
   snap.forEach(doc=>{
