@@ -62,7 +62,8 @@
 <script type="module">
 
 import { db, storage } from "../js/firebase.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where } 
+
+import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where, serverTimestamp } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { ref, uploadBytes, getDownloadURL, deleteObject } 
@@ -75,34 +76,35 @@ const msg = document.getElementById("msg");
 
 const villageId = "wandhali";
 
-
 /* UPLOAD IMAGE */
 
 uploadBtn.onclick = async () => {
 
   if(uploadBtn.disabled) return;
 
-  if(!imageFile.files[0]){
+  const file = imageFile.files[0];
+
+  if(!file){
     alert("Select image first");
     return;
   }
 
   try{
 
-    uploadBtn.innerText = "Uploading...";
     uploadBtn.disabled = true;
+    uploadBtn.innerText = "Uploading...";
 
-    const file = imageFile.files[0];
     const storageRef = ref(storage,"gallery/"+Date.now()+"_"+file.name);
 
     await uploadBytes(storageRef,file);
+
     const downloadURL = await getDownloadURL(storageRef);
 
     await addDoc(collection(db,"gallery"),{
       imageUrl: downloadURL,
       storagePath: storageRef.fullPath,
-      created: new Date(),
-      villageId: villageId
+      villageId: villageId,
+      created: serverTimestamp()
     });
 
     msg.style.color="green";
@@ -112,7 +114,7 @@ uploadBtn.onclick = async () => {
 
     imageFile.value="";
 
-    loadGallery();
+    await loadGallery();
 
   }catch(error){
 
@@ -122,8 +124,8 @@ uploadBtn.onclick = async () => {
 
   }
 
-  uploadBtn.innerText = "Upload Image";
-  uploadBtn.disabled = false;
+  uploadBtn.innerText="Upload Image";
+  uploadBtn.disabled=false;
 
 };
 
@@ -191,16 +193,20 @@ async function loadGallery(){
         }
 
         await deleteDoc(doc(db,"gallery",docSnap.id));
+
         loadGallery();
 
       }catch(error){
+        console.error(error);
         alert("Delete failed ❌");
       }
+
     };
 
     galleryGrid.appendChild(card);
 
   });
+
 }
 
 loadGallery();
