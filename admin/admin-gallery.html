@@ -59,7 +59,7 @@
 <script type="module">
 
 import { db, storage } from "../js/firebase.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } 
+import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL, deleteObject } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
@@ -87,13 +87,14 @@ uploadBtn.onclick = async () => {
     await uploadBytes(storageRef,file);
     const downloadURL = await getDownloadURL(storageRef);
 
-    const villageId = "wandhali";
-    await addDoc(collection(db,"gallery"),{
-      imageUrl:downloadURL,
-      storagePath:storageRef.fullPath,
-      created:new Date()
-       villageId:wandhali
-    });
+   const villageId = "wandhali";
+
+await addDoc(collection(db,"gallery"),{
+  imageUrl: downloadURL,
+  storagePath: storageRef.fullPath,
+  created: new Date(),
+  villageId: villageId
+});
 
     msg.textContent="Image uploaded successfully ✅";
     imageFile.value="";
@@ -113,7 +114,11 @@ async function loadGallery(){
 
   galleryGrid.innerHTML="";
 
-  const q = query(collection(db,"gallery"),orderBy("created","desc"));
+  const q = query(
+  collection(db,"gallery"),
+  where("villageId","==","wandhali"),
+  orderBy("created","desc")
+);
   const snapshot = await getDocs(q);
 
   if(snapshot.empty){
