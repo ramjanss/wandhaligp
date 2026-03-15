@@ -87,10 +87,12 @@ uploadBtn.onclick = async () => {
     await uploadBytes(storageRef,file);
     const downloadURL = await getDownloadURL(storageRef);
 
+    const villageId = "wandhali";
     await addDoc(collection(db,"gallery"),{
       imageUrl:downloadURL,
       storagePath:storageRef.fullPath,
       created:new Date()
+       villageId:wandhali
     });
 
     msg.textContent="Image uploaded successfully ✅";
