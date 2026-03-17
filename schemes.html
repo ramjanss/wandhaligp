@@ -311,12 +311,6 @@ margin:10px 0;
 import { db } from "./js/firebase.js";
 import { collection, getDocs, query, where, orderBy }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-query(
-  collection(db,"schemes"),
-  where("villageId","==","wandhali"),
-  orderBy("updatedAt","desc")
-)
   
 async function loadSchemes(){
 
@@ -324,7 +318,11 @@ const container = document.getElementById("schemeContainer");
 container.innerHTML = "";
 
 const snap = await getDocs(
-  query(collection(db,"schemes"), orderBy("updatedAt","desc"))
+  query(
+    collection(db,"schemes"),
+    where("villageId","==","wandhali"),
+    orderBy("updatedAt","desc")
+  )
 );
 
 if(snap.empty){
@@ -341,7 +339,6 @@ snap.forEach(doc=>{
 
   container.innerHTML += `
   <div class="scheme-card">
-
     ${d.imageUrl ? `
     <img src="${d.imageUrl}" class="scheme-image"
     onclick='openSchemeModal(${JSON.stringify(d)})'>
@@ -370,15 +367,12 @@ snap.forEach(doc=>{
       ` : ""}
 
     </div>
-
   </div>
   `;
+});
 
-});   // ✅ IMPORTANT
-
-}     // ✅ IMPORTANT
-
-loadSchemes();
+}
+  loadSchemes();
 
 window.openSchemeModal=function(data){
 
