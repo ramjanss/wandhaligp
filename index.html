@@ -890,6 +890,23 @@ html {
   background:#15803d;
   color:white;
 }
+
+.view-all-btn{
+  display:inline-block;
+  padding:12px 26px;
+  background:linear-gradient(135deg,#1e3a8a,#15803d);
+  color:white;
+  font-weight:600;
+  border-radius:30px;
+  text-decoration:none;
+  letter-spacing:0.3px;
+  box-shadow:0 6px 15px rgba(0,0,0,0.15);
+  transition:0.3s ease;
+}
+
+.view-all-btn:hover{
+  transform:translateY(-3px) scale(1.03);
+}
 /* ===== AUTO SLIDING GALLERY ===== */
 
 .gallery-wrapper{
@@ -1311,7 +1328,15 @@ html {
 </section>
 <section class="section" id="schemes">
   <h2>Government Schemes</h2>
+
   <div id="schemeContainer" class="scheme-grid"></div>
+
+  <div style="text-align:center; margin-top:25px;">
+    <a href="schemes.html" class="view-all-btn">
+      View All Schemes →
+    </a>
+  </div>
+
 </section>
   
 <section class="section" id="gallery">
