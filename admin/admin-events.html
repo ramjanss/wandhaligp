@@ -62,6 +62,7 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
+  updateDoc,
   doc,
   query,
   orderBy,
@@ -85,7 +86,8 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 /* ================= CONFIG ================= */
 
 const villageId = "wandhali";
-
+let editingId = null;
+let oldImagePath = "";
 
 /* ================= LOGOUT ================= */
 
@@ -125,12 +127,12 @@ addBtn.onclick = async () => {
   try {
 
     addBtn.disabled = true;
-    addBtn.innerText = "Uploading...";
-    msg.style.color = "#333";
-    msg.textContent = "Uploading...";
+    addBtn.innerText = editingId ? "Updating..." : "Uploading...";
 
     let imageUrl = "";
-    let storagePath = "";
+    let storagePath = oldImagePath || "";
+
+    /* IMAGE HANDLING */
 
     if(imageInput.files[0]){
 
@@ -141,38 +143,65 @@ addBtn.onclick = async () => {
 
       imageUrl = await getDownloadURL(storageRef);
       storagePath = storageRef.fullPath;
+
+      // delete old image if updating
+      if(oldImagePath){
+        try{
+          await deleteObject(ref(storage,oldImagePath));
+        }catch(e){}
+      }
+
     }
 
-    await addDoc(collection(db,"events"),{
-      title: titleInput.value,
-      description: descInput.value,
-      eventDate: new Date(dateInput.value),
-      imageUrl,
-      storagePath,
-      villageId: villageId,
-      createdAt: serverTimestamp()
-    });
+    if(editingId){
 
-    msg.style.color = "green";
-    msg.textContent = "Event uploaded successfully ✅";
+      // UPDATE
+      await updateDoc(doc(db,"events",editingId),{
+        title: titleInput.value,
+        description: descInput.value,
+        eventDate: new Date(dateInput.value),
+        ...(imageUrl && { imageUrl }),
+        ...(storagePath && { storagePath })
+      });
 
+      msg.textContent = "Event updated successfully ✏️";
+
+    } else {
+
+      // ADD
+      await addDoc(collection(db,"events"),{
+        title: titleInput.value,
+        description: descInput.value,
+        eventDate: new Date(dateInput.value),
+        imageUrl,
+        storagePath,
+        villageId,
+        createdAt: serverTimestamp()
+      });
+
+      msg.textContent = "Event uploaded successfully ✅";
+    }
+
+    /* RESET FORM */
     titleInput.value="";
     descInput.value="";
     dateInput.value="";
     imageInput.value="";
 
+    editingId = null;
+    oldImagePath = "";
+
+    addBtn.innerText = "Upload Event";
+
     loadEvents();
 
   } catch(error){
     console.error(error);
-    msg.style.color = "red";
-    msg.textContent = "Upload failed ❌";
+    msg.textContent = "Operation failed ❌";
   }
 
   addBtn.disabled = false;
-  addBtn.innerText = "Upload Event";
 };
-
 
 /* ================= LOAD EVENTS ================= */
 
@@ -205,24 +234,55 @@ async function loadEvents(){
     card.className="card";
     card.style.marginBottom="20px";
 
-    card.innerHTML=`
-      <strong>${data.title}</strong><br>
-      ${eventDate || ""}<br>
-      ${data.description || ""}<br><br>
-      ${data.imageUrl ? `<img src="${data.imageUrl}" width="150">` : ""}
-      <br><br>
-      <button class="deleteBtn" style="
-        background:#ef4444;
-        color:white;
-        border:none;
-        padding:6px 12px;
-        border-radius:6px;
-        cursor:pointer;
-      ">
-        Delete
-      </button>
-    `;
+   card.innerHTML = `
+  <strong>${data.title}</strong><br>
+  ${eventDate || ""}<br>
+  ${data.description || ""}<br><br>
+  ${data.imageUrl ? `<img src="${data.imageUrl}" width="150">` : ""}
+  <br><br>
 
+  <button class="editBtn" style="
+    background:#1e3a8a;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    margin-right:8px;
+    cursor:pointer;
+  ">
+    Edit
+  </button>
+
+  <button class="deleteBtn" style="
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+  ">
+    Delete
+  </button>
+`;
+
+   card.querySelector(".editBtn").onclick = () => {
+
+  editingId = docSnap.id;
+
+  titleInput.value = data.title || "";
+  descInput.value = data.description || "";
+
+  if(data.eventDate){
+    const d = data.eventDate.toDate();
+    dateInput.value = d.toISOString().split("T")[0];
+  }
+
+  oldImagePath = data.storagePath || "";
+
+  addBtn.innerText = "Update Event";
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}; 
     card.querySelector(".deleteBtn").onclick = async () => {
 
       if(!confirm("Delete this event?")) return;
