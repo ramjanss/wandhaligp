@@ -312,6 +312,12 @@ import { db } from "./js/firebase.js";
 import { collection, getDocs, query, orderBy }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+query(
+  collection(db,"schemes"),
+  where("villageId","==","wandhali"),
+  orderBy("updatedAt","desc")
+)
+  
 async function loadSchemes(){
 
 const container = document.getElementById("schemeContainer");
@@ -334,41 +340,43 @@ snap.forEach(doc=>{
   if(d.category === "State") categoryClass = "category-state";
 
   container.innerHTML += `
-<div class="scheme-card">
+  <div class="scheme-card">
 
-${d.imageUrl ? `
-<img src="${d.imageUrl}" class="scheme-image"
-onclick='openSchemeModal(${JSON.stringify(d)})'>
-` : ""}
+    ${d.imageUrl ? `
+    <img src="${d.imageUrl}" class="scheme-image"
+    onclick='openSchemeModal(${JSON.stringify(d)})'>
+    ` : ""}
 
-<span class="scheme-category ${categoryClass}">
-${d.category || "Local"}
-</span>
+    <span class="scheme-category ${categoryClass}">
+      ${d.category || "Local"}
+    </span>
 
-<h4>${d.title}</h4>
+    <h4>${d.title}</h4>
 
-<p>${(d.description || "").substring(0,120)}...</p>
+    <p>${(d.description || "").substring(0,120)}...</p>
 
-<div class="scheme-buttons">
+    <div class="scheme-buttons">
 
-<button class="scheme-btn btn-details"
-onclick='openSchemeModal(${JSON.stringify(d)})'>
-View Details
-</button>
+      <button class="scheme-btn btn-details"
+      onclick='openSchemeModal(${JSON.stringify(d)})'>
+      View Details
+      </button>
 
-${d.link ? `
-<a href="${d.link}" target="_blank"
-class="scheme-btn btn-link">
-Official Link
-</a>
-` : ""}
+      ${d.link ? `
+      <a href="${d.link}" target="_blank"
+      class="scheme-btn btn-link">
+      Official Link
+      </a>
+      ` : ""}
 
-</div>
+    </div>
 
-</div>
-`;
+  </div>
+  `;
 
-};
+});   // ✅ IMPORTANT
+
+}     // ✅ IMPORTANT
 
 loadSchemes();
 
