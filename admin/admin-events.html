@@ -56,17 +56,38 @@
 <script type="module">
 
 import { db, storage, auth } from "../js/firebase.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy }
+
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  where,
+  serverTimestamp
+}
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { ref, uploadBytes, getDownloadURL, deleteObject }
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+}
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-import { signOut } from 
-"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 
-/* ================= LOGOUT FIX ================= */
+/* ================= CONFIG ================= */
+
+const villageId = "wandhali";
+
+
+/* ================= LOGOUT ================= */
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   await signOut(auth);
@@ -74,7 +95,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 });
 
 
-/* ================= EVENT UPLOAD ================= */
+/* ================= ELEMENTS ================= */
 
 const titleInput = document.getElementById("eventTitle");
 const descInput = document.getElementById("eventDesc");
@@ -82,8 +103,14 @@ const dateInput = document.getElementById("eventDate");
 const imageInput = document.getElementById("eventImage");
 const msg = document.getElementById("eventMsg");
 const eventList = document.getElementById("eventList");
+const addBtn = document.getElementById("addEventBtn");
 
-document.getElementById("addEventBtn").addEventListener("click", async () => {
+
+/* ================= ADD EVENT ================= */
+
+addBtn.onclick = async () => {
+
+  if(addBtn.disabled) return;
 
   if(titleInput.value.trim() === ""){
     alert("Title required");
@@ -97,15 +124,17 @@ document.getElementById("addEventBtn").addEventListener("click", async () => {
 
   try {
 
+    addBtn.disabled = true;
+    addBtn.innerText = "Uploading...";
+    msg.style.color = "#333";
     msg.textContent = "Uploading...";
-    
+
     let imageUrl = "";
     let storagePath = "";
 
     if(imageInput.files[0]){
 
       const file = imageInput.files[0];
-
       const storageRef = ref(storage,"events/"+Date.now()+"_"+file.name);
 
       await uploadBytes(storageRef,file);
@@ -115,14 +144,16 @@ document.getElementById("addEventBtn").addEventListener("click", async () => {
     }
 
     await addDoc(collection(db,"events"),{
-      title:titleInput.value,
-      description:descInput.value,
-      eventDate:new Date(dateInput.value),
-      imageUrl:imageUrl,
-      storagePath:storagePath,
-      createdAt:new Date()
+      title: titleInput.value,
+      description: descInput.value,
+      eventDate: new Date(dateInput.value),
+      imageUrl,
+      storagePath,
+      villageId: villageId,
+      createdAt: serverTimestamp()
     });
 
+    msg.style.color = "green";
     msg.textContent = "Event uploaded successfully ✅";
 
     titleInput.value="";
@@ -133,11 +164,14 @@ document.getElementById("addEventBtn").addEventListener("click", async () => {
     loadEvents();
 
   } catch(error){
-    console.error("Upload Error:", error);
+    console.error(error);
+    msg.style.color = "red";
     msg.textContent = "Upload failed ❌";
   }
 
-});
+  addBtn.disabled = false;
+  addBtn.innerText = "Upload Event";
+};
 
 
 /* ================= LOAD EVENTS ================= */
@@ -146,7 +180,12 @@ async function loadEvents(){
 
   eventList.innerHTML="Loading...";
 
-  const q = query(collection(db,"events"),orderBy("eventDate","desc"));
+  const q = query(
+    collection(db,"events"),
+    where("villageId","==",villageId),
+    orderBy("eventDate","desc")
+  );
+
   const snapshot = await getDocs(q);
 
   eventList.innerHTML="";
@@ -159,7 +198,8 @@ async function loadEvents(){
   snapshot.forEach(docSnap=>{
 
     const data = docSnap.data();
-    const eventDate = data.eventDate?.toDate().toLocaleDateString();
+
+    const eventDate = data.eventDate?.toDate().toLocaleDateString('en-IN');
 
     const card = document.createElement("div");
     card.className="card";
@@ -171,12 +211,19 @@ async function loadEvents(){
       ${data.description || ""}<br><br>
       ${data.imageUrl ? `<img src="${data.imageUrl}" width="150">` : ""}
       <br><br>
-      <button class="deleteBtn" style="background:#ef4444;color:white;border:none;padding:6px 12px;border-radius:6px;">
+      <button class="deleteBtn" style="
+        background:#ef4444;
+        color:white;
+        border:none;
+        padding:6px 12px;
+        border-radius:6px;
+        cursor:pointer;
+      ">
         Delete
       </button>
     `;
 
-    card.querySelector(".deleteBtn").addEventListener("click", async () => {
+    card.querySelector(".deleteBtn").onclick = async () => {
 
       if(!confirm("Delete this event?")) return;
 
@@ -187,13 +234,14 @@ async function loadEvents(){
         }
 
         await deleteDoc(doc(db,"events",docSnap.id));
+
         loadEvents();
 
       }catch(error){
         alert("Delete failed ❌");
       }
 
-    });
+    };
 
     eventList.appendChild(card);
   });
@@ -201,7 +249,6 @@ async function loadEvents(){
 }
 
 loadEvents();
-
 </script>
 
 </body>
