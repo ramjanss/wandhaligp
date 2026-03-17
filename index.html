@@ -767,28 +767,40 @@ html {
 }
     
 /* EVENTS */
-.events-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:25px;
-  transform:translateY(-5px);
+.event-card{
+  background:white;
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid #e5e7eb;
+  box-shadow:0 6px 15px rgba(0,0,0,0.05);
+  transition:0.3s;
+  cursor:pointer;
 }
 
-.event-card{
-  background:#f1f5f9;
-  padding:15px;
-  border-radius:10px;
+.event-card:hover{
+  transform:translateY(-8px);
+  box-shadow:0 12px 25px rgba(0,0,0,0.12);
 }
 
 .event-card img{
   width:100%;
-  height:180px;
+  height:200px;
   object-fit:cover;
-  border-radius:8px;
 }
 
- .event-card:hover{
-  transform:translateY(-10px);
+.event-content{
+  padding:16px;
+}
+
+.event-content h4{
+  margin:0 0 6px;
+  color:#1e3a8a;
+}
+
+.event-date{
+  font-size:13px;
+  color:#777;
+  margin-bottom:8px;
 }
    
     
@@ -1323,9 +1335,18 @@ html {
 </section>
 
 <section class="section" id="events">
-<h2>Recent Events</h2>
-<div id="eventsContainer" class="events-grid"></div>
+  <h2>Recent Events</h2>
+
+  <div id="eventsContainer" class="events-grid"></div>
+
+  <div style="text-align:center; margin-top:25px;">
+    <a href="events.html" class="view-all-btn">
+      View All Events →
+    </a>
+  </div>
+
 </section>
+
 <section class="section" id="schemes">
   <h2>Government Schemes</h2>
 
@@ -1509,31 +1530,59 @@ employees.forEach(d=>employeeContainer.innerHTML+=buildCard(d));
 loadLeadership();
 
 /* EVENTS */
+
 async function loadEvents(){
-const container=document.getElementById("eventsContainer");
-container.innerHTML="";
 
-const q=query(collection(db,"events"),orderBy("eventDate","desc"));
-const snap=await getDocs(q);
+  const container = document.getElementById("eventsContainer");
+  container.innerHTML = "";
 
-let count=0;
+  const snap = await getDocs(
+    query(
+      collection(db,"events"),
+      where("villageId","==","wandhali"),
+      orderBy("eventDate","desc")
+    )
+  );
 
-snap.forEach(doc=>{
-if(count>=3) return;
+  if(snap.empty){
+    container.innerHTML = "<p>No events available.</p>";
+    return;
+  }
 
-const d=doc.data();
-const date=d.eventDate?.toDate().toLocaleDateString('en-IN');
+  let count = 0;
 
-container.innerHTML+=`
-<div class="event-card" onclick='openEventModal(${JSON.stringify(d)})'>
-${d.imageUrl?`<img src="${d.imageUrl}">`:""}
-<h4>${d.title}</h4>
-<small>${date||""}</small>
-<p>${d.description||""}</p>
-</div>`;
-count++;
-});
+  snap.forEach(doc=>{
+
+    if(count >= 3) return;
+
+    const d = doc.data();
+
+    const dateObj = d.eventDate?.toDate();
+    const formattedDate = dateObj
+      ? dateObj.getDate().toString().padStart(2,'0') + "/" +
+        (dateObj.getMonth()+1).toString().padStart(2,'0') + "/" +
+        dateObj.getFullYear()
+      : "";
+
+    container.innerHTML += `
+      <div class="event-card" onclick='openEventModal(${JSON.stringify(d)})'>
+
+        ${d.imageUrl ? `<img src="${d.imageUrl}">` : ""}
+
+        <div class="event-content">
+          <h4>${d.title}</h4>
+          <div class="event-date">${formattedDate}</div>
+          <p>${(d.description || "").substring(0,100)}...</p>
+        </div>
+
+      </div>
+    `;
+
+    count++;
+  });
+
 }
+
 loadEvents();
 
 window.openEventModal=function(data){
@@ -1911,6 +1960,26 @@ document.getElementById("schemeModal").onclick=function(e){
 if(e.target.id==="schemeModal"){
 document.getElementById("schemeModal").style.display="none";
 }
+}
+window.openEventModal=function(data){
+
+document.getElementById("modalTitle").textContent=data.title;
+
+document.getElementById("modalDescription").textContent=
+data.description || "";
+
+const dateObj = data.eventDate?.toDate();
+document.getElementById("modalDate").textContent =
+dateObj
+? dateObj.getDate().toString().padStart(2,'0') + "/" +
+  (dateObj.getMonth()+1).toString().padStart(2,'0') + "/" +
+  dateObj.getFullYear()
+: "";
+
+document.getElementById("modalImage").src=data.imageUrl || "";
+
+document.getElementById("eventModal").style.display="flex";
+
 }
 </script> 
   
