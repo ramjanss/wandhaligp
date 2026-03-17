@@ -101,34 +101,25 @@ body{
 }
 
 /* ===== EVENTS GRID ===== */
-.section{
-  padding:70px 20px;
-  max-width:1200px;
-  margin:auto;
-}
-
-.events-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-  gap:30px;
-}
-
 .event-card{
   background:white;
-  border-radius:12px;
+  border-radius:14px;
   overflow:hidden;
   border:1px solid #e5e7eb;
-  box-shadow:0 6px 15px rgba(0,0,0,0.05);
-  transition:0.3s;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
+  transition:0.3s ease;
+  cursor:pointer;
+  position:relative;
 }
 
 .event-card:hover{
-  transform:translateY(-6px);
+  transform:translateY(-10px);
+  box-shadow:0 20px 40px rgba(0,0,0,0.15);
 }
 
 .event-card img{
   width:100%;
-  height:200px;
+  height:220px;
   object-fit:cover;
 }
 
@@ -138,7 +129,7 @@ body{
 
 .event-content h4{
   margin:0 0 6px;
-  color:var(--primary);
+  color:#1e3a8a;
 }
 
 .event-date{
@@ -146,7 +137,6 @@ body{
   color:#777;
   margin-bottom:8px;
 }
-
 /* ===== FOOTER ===== */
 footer{
   background:var(--primary);
@@ -198,13 +188,55 @@ footer{
 <div id="pagination"></div>
 </section>
 
+<div id="eventModal" style="
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.8);
+justify-content:center;
+align-items:center;
+z-index:9999;
+padding:20px;
+">
+
+<div style="
+background:white;
+padding:25px;
+border-radius:12px;
+max-width:600px;
+width:100%;
+position:relative;
+">
+
+<span onclick="closeEventModal()" style="
+position:absolute;
+right:15px;
+top:10px;
+cursor:pointer;
+font-size:20px;
+">✕</span>
+
+<h3 id="modalTitle"></h3>
+
+<p id="modalDate" style="font-size:13px;color:#777;"></p>
+
+<img id="modalImage" style="
+width:100%;
+margin:10px 0;
+border-radius:8px;
+">
+
+<p id="modalDescription"></p>
+
+</div>
+</div>
 <footer>
 © <span id="year"></span> Gram Panchayat Wandhali
 </footer>
 
 <script type="module">
 import { db } from "./js/firebase.js";
-import { collection, getDocs, query, orderBy }
+import { collection, getDocs, query, orderBy, where }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ===== PAGINATION SETTINGS ===== */
@@ -218,8 +250,11 @@ async function loadEvents(){
   container.innerHTML = "";
   paginationContainer.innerHTML = "";
 
-  const q = query(collection(db,"events"),orderBy("eventDate","desc"));
-  const snap = await getDocs(q);
+ const q = query(
+  collection(db,"events"),
+  where("villageId","==","wandhali"),
+  orderBy("eventDate","desc")
+);
 
   const events = [];
   snap.forEach(doc => events.push(doc.data()));
@@ -241,16 +276,19 @@ async function loadEvents(){
         dateObj.getFullYear()
       : "";
 
-    container.innerHTML += `
-      <div class="event-card">
-        ${d.imageUrl ? `<img src="${d.imageUrl}">` : ""}
-        <div class="event-content">
-          <h4>${d.title}</h4>
-          <div class="event-date">${formattedDate}</div>
-          <p>${d.description || ""}</p>
-        </div>
-      </div>
-    `;
+  container.innerHTML += `
+  <div class="event-card" onclick='openEventModal(${JSON.stringify(d)})'>
+
+    ${d.imageUrl ? `<img src="${d.imageUrl}">` : ""}
+
+    <div class="event-content">
+      <h4>${d.title}</h4>
+      <div class="event-date">${formattedDate}</div>
+      <p>${(d.description || "").substring(0,120)}...</p>
+    </div>
+
+  </div>
+`;
   });
 
   renderPagination(events.length);
@@ -296,6 +334,40 @@ document.getElementById("year").textContent =
   new Date().getFullYear();
 
 loadEvents();
+
+window.openEventModal=function(data){
+
+document.getElementById("modalTitle").textContent=data.title;
+
+const dateObj = data.eventDate?.toDate();
+
+document.getElementById("modalDate").textContent =
+dateObj
+? dateObj.getDate().toString().padStart(2,'0') + "/" +
+  (dateObj.getMonth()+1).toString().padStart(2,'0') + "/" +
+  dateObj.getFullYear()
+: "";
+
+document.getElementById("modalDescription").textContent =
+data.description || "";
+
+document.getElementById("modalImage").src =
+data.imageUrl || "";
+
+document.getElementById("eventModal").style.display="flex";
+
+}
+
+window.closeEventModal=function(){
+document.getElementById("eventModal").style.display="none";
+}
+
+document.getElementById("eventModal").onclick=function(e){
+if(e.target.id==="eventModal"){
+document.getElementById("eventModal").style.display="none";
+}
+}
 </script>
+
 </body>
 </html>
