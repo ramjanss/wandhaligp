@@ -7,9 +7,11 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@600;700&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/favicon.png">
+
 <style>
 :root{
   --primary:#1e3a8a;
+  --accent:#15803d;
   --light:#f8fafc;
   --text:#1f2937;
 }
@@ -20,7 +22,7 @@ body{
   color:var(--text);
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .gov-top-strip{
   background:#f5f5f5;
   text-align:center;
@@ -39,12 +41,6 @@ body{
   max-width:1200px;
   margin:auto;
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.gov-left{
-  display:flex;
   align-items:center;
   gap:20px;
 }
@@ -57,43 +53,30 @@ body{
   font-family:'Noto Serif', serif;
   font-size:30px;
   font-weight:700;
-  margin:5px 0;
 }
 
-/* ===== NAVBAR ===== */
+/* NAVBAR */
 .gov-navbar{
   background:#e9e9e9;
-  border-bottom:1px solid #d5d5d5;
 }
 
 .nav-menu{
+  display:flex;
   list-style:none;
   margin:0;
   padding:0;
-  display:flex;
   max-width:1200px;
   margin:auto;
 }
 
 .nav-menu li a{
-  display:block;
   padding:14px 18px;
+  display:block;
   text-decoration:none;
   color:#222;
 }
 
-.nav-menu li a:hover{
-  background:#dcdcdc;
-}
-
-/* ===== PAGE TITLE ===== */
-
-.events-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-  gap:30px;
-}
-  
+/* TITLE */
 .page-title{
   background:var(--light);
   padding:50px 20px;
@@ -101,13 +84,24 @@ body{
 }
 
 .page-title h1{
-  font-family:'Noto Serif', serif;
-  font-size:34px;
+  font-family:'Noto Serif';
   color:var(--primary);
-  margin:0;
 }
 
-/* ===== EVENTS GRID ===== */
+/* GRID */
+.section{
+  padding:70px 20px;
+  max-width:1200px;
+  margin:auto;
+}
+
+.events-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:30px;
+}
+
+/* CARD SAME AS SCHEME */
 .event-card{
   background:white;
   padding:22px;
@@ -137,13 +131,11 @@ body{
 
 .event-btn{
   flex:1;
-  padding:8px 12px;
+  padding:8px;
   border-radius:6px;
-  font-size:13px;
-  text-align:center;
-  text-decoration:none;
   border:none;
   cursor:pointer;
+  font-size:13px;
 }
 
 .btn-details{
@@ -151,37 +143,45 @@ body{
   color:white;
 }
 
-.btn-link{
-  background:#15803d;
-  color:white;
+/* MODAL */
+#eventModal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
 }
-/* ===== FOOTER ===== */
+
+.modal-box{
+  background:white;
+  padding:25px;
+  border-radius:10px;
+  max-width:600px;
+  width:100%;
+  position:relative;
+}
+
 footer{
   background:var(--primary);
   color:white;
   text-align:center;
   padding:30px;
-  margin-top:60px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="gov-top-strip">
-महाराष्ट्र शासन | GOVERNMENT OF MAHARASHTRA
-</div>
+<div class="gov-top-strip">महाराष्ट्र शासन | GOVERNMENT OF MAHARASHTRA</div>
 
 <header class="gov-header">
 <div class="gov-header-container">
-<div class="gov-left">
 <div class="emblem-box">
 <img src="assets/india-emblem.png">
 </div>
 <div>
 <h1 class="gp-english">Gram Panchayat Wandhali</h1>
-<p>Taluka Warora | District Chandrapur</p>
-</div>
 </div>
 </div>
 </header>
@@ -192,8 +192,6 @@ footer{
 <li><a href="members.html">Leadership</a></li>
 <li><a href="schemes.html">Schemes</a></li>
 <li><a href="events.html">Events</a></li>
-<li><a href="index.html#gallery">Gallery</a></li>
-<li><a href="contact.html">Contact</a></li>
 </ul>
 </nav>
 
@@ -206,48 +204,19 @@ footer{
 <div id="pagination"></div>
 </section>
 
-<div id="eventModal" style="
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.8);
-justify-content:center;
-align-items:center;
-z-index:9999;
-padding:20px;
-">
-
-<div style="
-background:white;
-padding:25px;
-border-radius:12px;
-max-width:600px;
-width:100%;
-position:relative;
-">
-
-<span onclick="closeEventModal()" style="
-position:absolute;
-right:15px;
-top:10px;
-cursor:pointer;
-font-size:20px;
-">✕</span>
+<!-- MODAL -->
+<div id="eventModal">
+<div class="modal-box">
+<span onclick="closeEventModal()" style="position:absolute;right:15px;top:10px;cursor:pointer;">✕</span>
 
 <h3 id="modalTitle"></h3>
-
-<p id="modalDate" style="font-size:13px;color:#777;"></p>
-
-<img id="modalImage" style="
-width:100%;
-margin:10px 0;
-border-radius:8px;
-">
-
+<p id="modalDate"></p>
+<img id="modalImage" style="width:100%;border-radius:8px;">
 <p id="modalDescription"></p>
 
 </div>
 </div>
+
 <footer>
 © <span id="year"></span> Gram Panchayat Wandhali
 </footer>
@@ -257,146 +226,78 @@ import { db } from "./js/firebase.js";
 import { collection, getDocs, query, orderBy, where }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ===== PAGINATION SETTINGS ===== */
 let currentPage = 1;
-const perPage = 6;   // 6 events per page
+const perPage = 6;
+let globalEvents = [];
 
 async function loadEvents(){
 
-  const container = document.getElementById("eventsContainer");
-  const paginationContainer = document.getElementById("pagination");
+const container = document.getElementById("eventsContainer");
+container.innerHTML = "";
 
-  container.innerHTML = "";
-  paginationContainer.innerHTML = "";
+const q = query(
+collection(db,"events"),
+where("villageId","==","wandhali"),
+orderBy("eventDate","desc")
+);
 
-  const q = query(
-    collection(db,"events"),
-    where("villageId","==","wandhali"),
-    orderBy("eventDate","desc")
-  );
+const snap = await getDocs(q);
 
-  const snap = await getDocs(q);   // ✅ FIX
+const events = [];
+snap.forEach(doc=>events.push(doc.data()));
 
-  const events = [];
+globalEvents = events;
 
-  snap.forEach(doc => events.push(doc.data()));
+const start = (currentPage-1)*perPage;
+const paginated = events.slice(start,start+perPage);
 
-  if(events.length === 0){
-    container.innerHTML = "<p>No events available.</p>";
-    return;
-  }
+paginated.forEach((d,index)=>{
 
-  const start = (currentPage - 1) * perPage;
-  const paginated = events.slice(start, start + perPage);
-
-  paginated.forEach(d => {
-
-    const dateObj = d.eventDate?.toDate();
-    const formattedDate = dateObj 
-      ? dateObj.getDate().toString().padStart(2,'0') + "/" +
-        (dateObj.getMonth()+1).toString().padStart(2,'0') + "/" +
-        dateObj.getFullYear()
-      : "";
-
-    container.innerHTML += `
-  <div class="event-card">
-
-    ${d.imageUrl ? `
-    <img src="${d.imageUrl}" class="event-image"
-    onclick='openEventModal(${JSON.stringify(d)})'>
-    ` : ""}
-
-    <h4>${d.title}</h4>
-
-    <div class="event-date">${formattedDate}</div>
-
-    <p>${(d.description || "").substring(0,120)}...</p>
-
-    <div class="event-buttons">
-
-      <button class="event-btn btn-details"
-      onclick='openEventModal(${JSON.stringify(d)})'>
-        View Details
-      </button>
-
-      ${d.link ? `
-      <a href="${d.link}" target="_blank"
-      class="event-btn btn-link">
-        Official Link
-      </a>
-      ` : ""}
-
-    </div>
-
-  </div>
-`;
-      });
-
-  renderPagination(events.length);
-}
-
-function renderPagination(total){
-
-  const pages = Math.ceil(total / perPage);
-  const paginationContainer = document.getElementById("pagination");
-
-  if(pages <= 1) return;
-
-  let html = '<div style="text-align:center;margin-top:40px;">';
-
-  for(let i = 1; i <= pages; i++){
-    html += `
-      <button 
-        onclick="changePage(${i})"
-        style="
-          margin:0 5px;
-          padding:6px 12px;
-          background:${i===currentPage ? '#1e3a8a' : '#eee'};
-          color:${i===currentPage ? '#fff' : '#000'};
-          border:none;
-          border-radius:6px;
-          cursor:pointer;
-        ">
-        ${i}
-      </button>
-    `;
-  }
-
-  html += '</div>';
-  paginationContainer.innerHTML = html;
-}
-
-window.changePage = function(page){
-  currentPage = page;
-  loadEvents();
-}
-
-document.getElementById("year").textContent =
-  new Date().getFullYear();
-
-loadEvents();
-
-window.openEventModal=function(data){
-
-document.getElementById("modalTitle").textContent=data.title;
-
-const dateObj = data.eventDate?.toDate();
-
-document.getElementById("modalDate").textContent =
-dateObj
-? dateObj.getDate().toString().padStart(2,'0') + "/" +
-  (dateObj.getMonth()+1).toString().padStart(2,'0') + "/" +
-  dateObj.getFullYear()
+const dateObj = d.eventDate?.toDate();
+const formattedDate = dateObj
+? dateObj.getDate()+"/"+(dateObj.getMonth()+1)+"/"+dateObj.getFullYear()
 : "";
 
-document.getElementById("modalDescription").textContent =
-data.description || "";
+container.innerHTML += `
+<div class="event-card">
 
-document.getElementById("modalImage").src =
-data.imageUrl || "";
+${d.imageUrl ? `
+<img src="${d.imageUrl}" class="event-image"
+onclick="openEventModal(${index})">
+` : ""}
+
+<h4>${d.title}</h4>
+<p>${formattedDate}</p>
+<p>${(d.description||"").substring(0,120)}...</p>
+
+<div class="event-buttons">
+<button class="event-btn btn-details"
+onclick="openEventModal(${index})">
+View Details
+</button>
+</div>
+
+</div>
+`;
+});
+}
+
+window.openEventModal = function(index){
+
+const data = globalEvents[index];
+
+document.getElementById("modalTitle").textContent = data.title;
+
+const dateObj = data.eventDate?.toDate();
+document.getElementById("modalDate").textContent =
+dateObj
+? dateObj.getDate()+"/"+(dateObj.getMonth()+1)+"/"+dateObj.getFullYear()
+: "";
+
+document.getElementById("modalDescription").textContent = data.description;
+document.getElementById("modalImage").src = data.imageUrl || "";
 
 document.getElementById("eventModal").style.display="flex";
-
 }
 
 window.closeEventModal=function(){
@@ -405,9 +306,13 @@ document.getElementById("eventModal").style.display="none";
 
 document.getElementById("eventModal").onclick=function(e){
 if(e.target.id==="eventModal"){
-document.getElementById("eventModal").style.display="none";
+closeEventModal();
 }
 }
+
+document.getElementById("year").textContent=new Date().getFullYear();
+
+loadEvents();
 </script>
 
 </body>
