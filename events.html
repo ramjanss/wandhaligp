@@ -247,16 +247,20 @@ async function loadEvents(){
 
   const container = document.getElementById("eventsContainer");
   const paginationContainer = document.getElementById("pagination");
+
   container.innerHTML = "";
   paginationContainer.innerHTML = "";
 
- const q = query(
-  collection(db,"events"),
-  where("villageId","==","wandhali"),
-  orderBy("eventDate","desc")
-);
+  const q = query(
+    collection(db,"events"),
+    where("villageId","==","wandhali"),
+    orderBy("eventDate","desc")
+  );
+
+  const snap = await getDocs(q);   // ✅ FIX
 
   const events = [];
+
   snap.forEach(doc => events.push(doc.data()));
 
   if(events.length === 0){
@@ -276,19 +280,19 @@ async function loadEvents(){
         dateObj.getFullYear()
       : "";
 
-  container.innerHTML += `
-  <div class="event-card" onclick='openEventModal(${JSON.stringify(d)})'>
+    container.innerHTML += `
+      <div class="event-card" onclick='openEventModal(${JSON.stringify(d)})'>
 
-    ${d.imageUrl ? `<img src="${d.imageUrl}">` : ""}
+        ${d.imageUrl ? `<img src="${d.imageUrl}">` : ""}
 
-    <div class="event-content">
-      <h4>${d.title}</h4>
-      <div class="event-date">${formattedDate}</div>
-      <p>${(d.description || "").substring(0,120)}...</p>
-    </div>
+        <div class="event-content">
+          <h4>${d.title}</h4>
+          <div class="event-date">${formattedDate}</div>
+          <p>${(d.description || "").substring(0,120)}...</p>
+        </div>
 
-  </div>
-`;
+      </div>
+    `;
   });
 
   renderPagination(events.length);
