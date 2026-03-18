@@ -1570,33 +1570,37 @@ async function loadEvents(){
         dateObj.getFullYear()
       : "";
 
-    container.innerHTML += `
-      <div class="event-card">
+   container.innerHTML += `
+<div class="scheme-card">
 
-        ${d.imageUrl ? `
-        <img src="${d.imageUrl}" class="scheme-image"
-        onclick="openEventModalByIndex(${index})">
-        ` : ""}
+  ${d.imageUrl ? `
+  <img src="${d.imageUrl}" class="scheme-image"
+  onclick="openEventModalByIndex(${index})">
+  ` : ""}
 
-        <h4>${d.title}</h4>
+  <span class="scheme-category category-local">
+    Event
+  </span>
 
-        <p style="font-size:12px;color:#777;margin-bottom:6px;">
-          ${formattedDate}
-        </p>
+  <h4>${d.title}</h4>
 
-        <p>${(d.description || "").substring(0,100)}...</p>
+  <p style="font-size:12px;color:#777;margin-bottom:6px;">
+    ${formattedDate}
+  </p>
 
-        <div class="scheme-buttons">
+  <p>${(d.description || "").substring(0,100)}...</p>
 
-          <button class="scheme-btn btn-details"
-          onclick="openEventModalByIndex(${index})">
-            View Details
-          </button>
+  <div class="scheme-buttons">
 
-        </div>
+    <button class="scheme-btn btn-details"
+    onclick="openEventModalByIndex(${index})">
+      View Details
+    </button>
 
-      </div>
-    `;
+  </div>
+
+</div>
+`;
 
     count++;
   });
