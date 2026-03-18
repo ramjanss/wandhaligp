@@ -1531,6 +1531,8 @@ loadLeadership();
 
 /* EVENTS */
 
+let globalEvents = [];
+
 async function loadEvents(){
 
   const container = document.getElementById("eventsContainer");
@@ -1550,12 +1552,16 @@ async function loadEvents(){
   }
 
   let count = 0;
+  globalEvents = [];
 
   snap.forEach(doc=>{
 
     if(count >= 3) return;
 
     const d = doc.data();
+    globalEvents.push(d);
+
+    const index = globalEvents.length - 1;
 
     const dateObj = d.eventDate?.toDate();
     const formattedDate = dateObj
@@ -1565,14 +1571,28 @@ async function loadEvents(){
       : "";
 
     container.innerHTML += `
-      <div class="event-card" onclick='openEventModal(${JSON.stringify(d)})'>
+      <div class="event-card">
 
-        ${d.imageUrl ? `<img src="${d.imageUrl}">` : ""}
+        ${d.imageUrl ? `
+        <img src="${d.imageUrl}" class="scheme-image"
+        onclick="openEventModalByIndex(${index})">
+        ` : ""}
 
-        <div class="event-content">
-          <h4>${d.title}</h4>
-          <div class="event-date">${formattedDate}</div>
-          <p>${(d.description || "").substring(0,100)}...</p>
+        <h4>${d.title}</h4>
+
+        <p style="font-size:12px;color:#777;margin-bottom:6px;">
+          ${formattedDate}
+        </p>
+
+        <p>${(d.description || "").substring(0,100)}...</p>
+
+        <div class="scheme-buttons">
+
+          <button class="scheme-btn btn-details"
+          onclick="openEventModalByIndex(${index})">
+            View Details
+          </button>
+
         </div>
 
       </div>
@@ -1582,20 +1602,31 @@ async function loadEvents(){
   });
 
 }
-
 loadEvents();
 
-window.openEventModal=function(data){
-document.getElementById("modalTitle").textContent=data.title;
-document.getElementById("modalDescription").textContent=data.description||"";
-document.getElementById("modalDate").textContent=data.eventDate?.toDate?.().toLocaleDateString('en-IN')||"";
-document.getElementById("modalImage").src=data.imageUrl||"";
-document.getElementById("eventModal").style.display="flex";
-}
+window.openEventModalByIndex = function(index){
 
-window.closeEventModal=function(){
-document.getElementById("eventModal").style.display="none";
-}
+  const data = globalEvents[index];
+
+  document.getElementById("modalTitle").textContent = data.title;
+
+  document.getElementById("modalDescription").textContent =
+  data.description || "";
+
+  const dateObj = data.eventDate?.toDate();
+
+  document.getElementById("modalDate").textContent =
+  dateObj
+  ? dateObj.getDate().toString().padStart(2,'0') + "/" +
+    (dateObj.getMonth()+1).toString().padStart(2,'0') + "/" +
+    dateObj.getFullYear()
+  : "";
+
+  document.getElementById("modalImage").src =
+  data.imageUrl || "";
+
+  document.getElementById("eventModal").style.display="flex";
+};
   
 async function loadSchemes(){
 
