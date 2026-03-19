@@ -767,17 +767,7 @@ html {
 }
     
 /* EVENTS */
-.event-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-  gap:25px;
-  margin-top: var(--space-sm);
-}
-    
-.event-card:hover{
-  transform:translateY(-8px);
-  box-shadow:0 12px 25px rgba(0,0,0,0.12);
-}
+
 
 .event-card h4{
   margin:0 0 8px;
@@ -1341,8 +1331,7 @@ html {
 <section class="section" id="events">
   <h2>Recent Events</h2>
 
-  <div id="eventsContainer" class="events-grid"></div>
-
+  <div id="eventsContainer" class="scheme-grid"></div>
   <div style="text-align:center; margin-top:25px;">
     <a href="events.html" class="view-all-btn">
       View All Events →
