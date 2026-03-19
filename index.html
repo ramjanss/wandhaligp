@@ -2004,10 +2004,26 @@ document.getElementById("schemeModal").style.display="flex";
 
 }
 
-document.getElementById("closeSchemeModal").onclick=function(){
-document.getElementById("schemeModal").style.display="none";
+document.getElementById("closeSchemeModal").onclick = closeSchemeModal;
+document.getElementById("schemeModal").onclick = function(e){
+  if(e.target.id === "schemeModal"){
+    closeSchemeModal();
+  }
 }
 
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape"){
+    closeEventModal();
+    closeSchemeModal();
+  }
+});
+
+document.getElementById("modalSchemeImage").src =
+  data.imageUrl || "";
+   
+function closeSchemeModal(){
+  document.getElementById("schemeModal").style.display = "none";
+}
 document.getElementById("schemeModal").onclick=function(e){
 if(e.target.id==="schemeModal"){
 document.getElementById("schemeModal").style.display="none";
