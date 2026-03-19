@@ -1762,18 +1762,18 @@ document.addEventListener("keydown",function(e){
 function closeEventModal(){
   document.getElementById("eventModal").style.display = "none";
 }
-
+document.querySelector("#eventModal span").onclick = closeEventModal;
 document.getElementById("eventModal").onclick = function(e){
   if(e.target.id === "eventModal"){
     closeEventModal();
   }
-}
+};
 
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape"){
     closeEventModal();
     closeSchemeModal();
-    modal.style.display = "none"; // gallery
+    document.getElementById("galleryModal").style.display = "none";
   }
 });
   </script>
@@ -2024,9 +2024,6 @@ document.addEventListener("keydown", function(e){
 function closeSchemeModal(){
   document.getElementById("schemeModal").style.display = "none";
 }
-
-document.getElementById("closeSchemeModal").onclick = closeSchemeModal;
-
 document.getElementById("schemeModal").onclick = function(e){
   if(e.target.id === "schemeModal"){
     closeSchemeModal();
