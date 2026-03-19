@@ -773,15 +773,6 @@ html {
   gap:25px;
   margin-top: var(--space-sm);
 }
-
-.event-card{
-  background:white;
-  padding:20px;
-  border-radius:12px;
-  border:1px solid #e5e7eb;
-  box-shadow:0 6px 15px rgba(0,0,0,0.05);
-  transition:0.3s;
-}
     
 .event-card:hover{
   transform:translateY(-8px);
@@ -798,17 +789,13 @@ html {
   color:#555;
   margin-bottom:15px;
 }
- .event-card img{
+.event-card img{
   width:100%;
   height:180px;
   object-fit:cover;
   border-radius:8px;
   margin-bottom:10px;
-  cursor:pointer;   
-
-.event-content h4{
-  margin:0 0 6px;
-  color:#1e3a8a;
+  cursor:pointer;
 }
 
 .event-date{
@@ -1780,6 +1767,22 @@ document.addEventListener("keydown",function(e){
     modal.style.display = "none";
   }
 });
+
+function closeEventModal(){
+  document.getElementById("eventModal").style.display = "none";
+}
+
+document.getElementById("eventModal").onclick = function(e){
+  if(e.target.id === "eventModal"){
+    closeEventModal();
+  }
+}
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape"){
+    closeEventModal();
+  }
+});
   </script>
 <!-- GALLERY MODAL -->
 <div id="galleryModal" style="
@@ -1812,6 +1815,8 @@ document.addEventListener("keydown",function(e){
 
 </div>
 
+
+
 <div id="eventModal" style="
 display:none;
 position:fixed;
@@ -1825,9 +1830,16 @@ padding:20px;
 <div style="background:white;padding:25px;border-radius:12px;max-width:600px;width:100%;position:relative;">
 <span onclick="closeEventModal()" style="position:absolute;right:15px;top:10px;cursor:pointer;font-size:20px;">✕</span>
 <h3 id="modalTitle"></h3>
-<p id="modalDate" style="font-size:13px;color:#777;"></p>
-<img id="modalImage" style="width:100%;margin:10px 0;border-radius:8px;">
-<p id="modalDescription"></p>
+
+<p id="modalDate" style="font-size:13px;color:#777;margin-bottom:8px;"></p>
+
+<img id="modalImage" style="
+width:100%;
+border-radius:8px;
+margin:10px 0;
+">
+
+<p id="modalDescription" style="line-height:1.6;"></p>
 </div>
 </div>
 
