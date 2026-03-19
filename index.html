@@ -1772,6 +1772,8 @@ document.getElementById("eventModal").onclick = function(e){
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape"){
     closeEventModal();
+    closeSchemeModal();
+    modal.style.display = "none"; // gallery
   }
 });
   </script>
@@ -1990,18 +1992,17 @@ headings.forEach(h=>{
   observer.observe(h);
 });
 
-window.openSchemeModal=function(data){
+window.openSchemeModal = function(data){
 
-document.getElementById("modalSchemeTitle").textContent=data.title;
+  document.getElementById("modalSchemeTitle").textContent = data.title;
 
-document.getElementById("modalSchemeDesc").textContent=
-data.description || "";
+  document.getElementById("modalSchemeDesc").textContent =
+    data.description || "";
 
-document.getElementById("modalSchemeImage").src=
-data.imageUrl || "";
+  document.getElementById("modalSchemeImage").src =
+    data.imageUrl || "";
 
-document.getElementById("schemeModal").style.display="flex";
-
+  document.getElementById("schemeModal").style.display = "flex";
 }
 
 document.getElementById("closeSchemeModal").onclick = closeSchemeModal;
@@ -2018,17 +2019,20 @@ document.addEventListener("keydown", function(e){
   }
 });
 
-document.getElementById("modalSchemeImage").src =
-  data.imageUrl || "";
+
    
 function closeSchemeModal(){
   document.getElementById("schemeModal").style.display = "none";
 }
-document.getElementById("schemeModal").onclick=function(e){
-if(e.target.id==="schemeModal"){
-document.getElementById("schemeModal").style.display="none";
-}
-}
+
+document.getElementById("closeSchemeModal").onclick = closeSchemeModal;
+
+document.getElementById("schemeModal").onclick = function(e){
+  if(e.target.id === "schemeModal"){
+    closeSchemeModal();
+  }
+};
+
 window.openEventModal=function(data){
 
 document.getElementById("modalTitle").textContent=data.title;
