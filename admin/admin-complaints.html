@@ -171,12 +171,21 @@ function render(data){
 
     const phone = c.phone;
 
-    const whatsappMsg = `Complaint Update:
+   const whatsappMsg = `Complaint Update
+
 Tracking ID: ${c.trackingId}
-Status: ${c.status}`;
+Status: ${c.status}
+
+Admin Reply:
+${c.adminReply || "No reply yet"}
+
+- Gram Panchayat Wandhali`;
 
     const waLink = `https://wa.me/91${phone}?text=${encodeURIComponent(whatsappMsg)}`;
-
+<label>Admin Reply</label>
+<textarea id="reply-${c.id}" style="width:100%;padding:6px;">
+  ${c.adminReply || ""}
+</textarea>
     card.innerHTML = `
       <strong>${c.trackingId}</strong>
       <span style="float:right">${c.status}</span>
@@ -222,14 +231,16 @@ window.save = async function(id){
 
   const status = document.getElementById(`status-${id}`).value;
   const priority = document.getElementById(`priority-${id}`).value;
+  const reply = document.getElementById(`reply-${id}`).value;
 
   await updateDoc(doc(db,"complaints",id),{
-    status:status,
-    priority:priority,
-    updatedAt:new Date()
+    status: status,
+    priority: priority,
+    adminReply: reply,   // ✅ NEW FIELD
+    updatedAt: new Date()
   });
 
-  alert("Updated");
+  alert("Updated Successfully");
   load();
 };
 
