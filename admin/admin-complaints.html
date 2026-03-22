@@ -12,6 +12,7 @@ body{
   background:#f3f4f6;
 }
 
+  
 /* SIDEBAR */
 .sidebar{
   width:240px;
@@ -117,12 +118,15 @@ button{
 
 <div class="sidebar">
   <h2>Admin Panel</h2>
-  <a href="#">Dashboard</a>
-  <a href="#">Members</a>
-  <a href="#">Notices</a>
-  <a href="#">Gallery</a>
-  <a href="#">Events</a>
-  <a class="active">Complaints</a>
+
+  <a href="index.html">Dashboard</a>
+  <a href="members.html">Members</a>
+  <a href="notices.html">Notices</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="events.html">Events</a>
+  <a href="schemes.html">Schemes</a>
+
+  <a href="admin-complaints.html" class="active">Complaints</a>
 </div>
 
 <div class="content">
@@ -142,10 +146,10 @@ button{
 
 <!-- FILTER -->
 <div class="filters">
-  <button onclick="setFilter('All')" class="active">All</button>
-  <button onclick="setFilter('Pending')">Pending</button>
-  <button onclick="setFilter('Resolved')">Resolved</button>
-  <button onclick="setFilter('Rejected')">Rejected</button>
+<button onclick="setFilter('All', this)" class="active">All</button>
+<button onclick="setFilter('Pending', this)">Pending</button>
+<button onclick="setFilter('Resolved', this)">Resolved</button>
+<button onclick="setFilter('Rejected', this)">Rejected</button>
 </div>
 
 <div id="list"></div>
@@ -155,7 +159,7 @@ button{
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, getDocs, updateDoc, doc }
+import { collection, updateDoc, doc, query, where, onSnapshot }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const VILLAGE_ID = "wandhali";
@@ -164,26 +168,35 @@ let complaints = [];
 let currentFilter = "All";
 
 /* LOAD DATA */
-async function load(){
+function load(){
+list.innerHTML = "Loading complaints...";
+  const q = query(
+    collection(db,"complaints"),
+    where("villageId","==","wandhali")
+  );
 
-  const snap = await getDocs(collection(db,"complaints"));
-  complaints = [];
+  onSnapshot(q,(snap)=>{
 
-  snap.forEach(d=>{
-    const data = d.data();
-    if(data.villageId === VILLAGE_ID){
-      complaints.push({ id:d.id, ...data });
-    }
+    complaints = [];
+
+    snap.forEach(d=>{
+      complaints.push({ id:d.id, ...d.data() });
+    });
+
+    render();
+
   });
 
-  render();
 }
-
 /* FILTER */
-window.setFilter = function(filter){
+window.setFilter = function(filter, btn){
   currentFilter = filter;
-  document.querySelectorAll(".filters button").forEach(btn=>btn.classList.remove("active"));
-  event.target.classList.add("active");
+
+  document.querySelectorAll(".filters button")
+  .forEach(b=>b.classList.remove("active"));
+
+  btn.classList.add("active");
+
   render();
 }
 
@@ -223,7 +236,20 @@ Reply: ${c.adminReply || ""}`;
 
     div.innerHTML = `
       <b>${c.trackingId}</b>
-      <span style="float:right">${c.status}</span>
+     <span style="
+  float:right;
+  padding:4px 10px;
+  border-radius:20px;
+  background:${
+    c.status==="Resolved" ? "#16a34a" :
+    c.status==="Rejected" ? "#dc2626" :
+    "#f59e0b"
+  };
+  color:white;
+  font-size:12px;
+">
+  ${c.status}
+</span>
 
       <p><b>${c.name}</b> (${c.phone})</p>
       <p>${c.message}</p>
@@ -269,6 +295,7 @@ window.save = async function(id){
 
   alert("Updated ✅");
   load();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 document.getElementById("search").addEventListener("input",render);
