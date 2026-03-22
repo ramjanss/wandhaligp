@@ -97,11 +97,6 @@ button:hover{opacity:0.9;}
 .step.active .step-circle{background:#1e3a8a;}
 .step.completed .step-circle{background:#16a34a;}
 
-.step-label{
-  font-size:11px;
-  margin-top:6px;
-}
-
 .status-badge{
   display:inline-block;
   padding:6px 12px;
@@ -109,18 +104,6 @@ button:hover{opacity:0.9;}
   font-size:12px;
   color:white;
 }
-
-.rating{
-  margin-top:15px;
-}
-
-.star{
-  font-size:20px;
-  cursor:pointer;
-  color:#ccc;
-}
-
-.star.active{color:#f59e0b;}
 
 .print-btn{
   background:#16a34a;
@@ -163,159 +146,128 @@ import { db } from "./js/firebase.js";
 import { collection, query, where, getDocs, updateDoc, doc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // AUTO FILL FROM URL
-const params = new URLSearchParams(window.location.search);
-const idFromURL = params.get("id");
-
-if(idFromURL){
-  document.getElementById("trackingIdInput").value = idFromURL;
-}
 const resultDiv = document.getElementById("result");
 
-document.getElementById("trackBtn").onclick = async () => {
-
-  const trackingId = document.getElementById("trackingIdInput").value.trim();
-  if(!trackingId){ alert("Enter tracking ID"); return; }
-
-  document.getElementById("trackingIdInput")
+// ✅ ENTER KEY SUPPORT
+document.getElementById("trackingIdInput")
 .addEventListener("keypress", function(e){
   if(e.key === "Enter"){
     document.getElementById("trackBtn").click();
   }
 });
- 
-  resultDiv.innerHTML = "Checking...";
 
- const q = query(
-  collection(db,"complaints"),
-  where("trackingId","==",trackingId),
-  where("villageId","==","wandhali")   // ✅ IMPORTANT
-);
-  const snapshot = await getDocs(q);
+// ✅ AUTO FILL FROM URL
+const params = new URLSearchParams(window.location.search);
+const idFromURL = params.get("id");
+if(idFromURL){
+  document.getElementById("trackingIdInput").value = idFromURL;
+}
 
-  if(snapshot.empty){
-    resultDiv.innerHTML = `<div class="result-card">❌ Complaint not found</div>`;
+// ✅ TRACK BUTTON
+document.getElementById("trackBtn").onclick = async () => {
+
+  const trackingId = document.getElementById("trackingIdInput").value.trim();
+
+  if(!trackingId){
+    alert("Enter tracking ID");
     return;
   }
 
-  snapshot.forEach(docSnap=>{
+  resultDiv.innerHTML = "Checking...";
 
-    const data = docSnap.data();
-    const id = docSnap.id;
+  try{
 
-    const createdDate = data.createdAt?.toDate();
-    const formattedDate = createdDate ? createdDate.toLocaleString() : "N/A";
-    const status = data.status || "Submitted";
+    const q = query(
+      collection(db,"complaints"),
+      where("trackingId","==",trackingId),
+      where("villageId","==","wandhali") // ✅ IMPORTANT
+    );
 
-    let steps = {
-      submitted:"completed",
-      accepted:"",
-      review:"",
-      resolved:""
-    };
+    const snapshot = await getDocs(q);
 
-    if(status==="Accepted"){ steps.accepted="active"; }
-    if(status==="In Review"){
-      steps.accepted="completed";
-      steps.review="active";
-    }
-    if(status==="Resolved"){
-      steps.accepted="completed";
-      steps.review="completed";
-      steps.resolved="completed";
+    if(snapshot.empty){
+      resultDiv.innerHTML = `<div class="result-card">❌ Complaint not found</div>`;
+      return;
     }
 
-    let statusColor =
-  status==="Resolved" ? "#16a34a" :
-  status==="Rejected" ? "#ef4444" :
-  status==="Accepted" ? "#2563eb" :
-  status==="In Review" ? "#f59e0b" :
-  "#6b7280";
+    snapshot.forEach(docSnap=>{
 
-    resultDiv.innerHTML = `
-    <div class="result-card">
+      const data = docSnap.data();
+      const id = docSnap.id;
 
-      <strong>Tracking ID:</strong> ${data.trackingId}<br>
-      <strong>Name:</strong> ${data.name}<br>
-      <strong>Date:</strong> ${formattedDate}<br><br>
-      <strong>Last Updated:</strong> 
-${data.updatedAt?.toDate().toLocaleString() || "N/A"}<br><br>
+      const date = data.createdAt?.toDate()?.toLocaleString() || "N/A";
+      const status = data.status || "Submitted";
 
-      <div class="timeline">
-        <div class="step completed">
-          <div class="step-circle">1</div>
-          <div class="step-label">Submitted</div>
+      let steps = { submitted:"completed", accepted:"", review:"", resolved:"" };
+
+      if(status==="Accepted") steps.accepted="active";
+      if(status==="In Review"){ steps.accepted="completed"; steps.review="active"; }
+      if(status==="Resolved"){ steps.accepted="completed"; steps.review="completed"; steps.resolved="completed"; }
+
+      let color =
+        status==="Resolved" ? "#16a34a" :
+        status==="Rejected" ? "#ef4444" :
+        status==="Accepted" ? "#2563eb" :
+        status==="In Review" ? "#f59e0b" :
+        "#6b7280";
+
+      resultDiv.innerHTML = `
+      <div class="result-card">
+
+        <strong>ID:</strong> ${data.trackingId}<br>
+        <strong>Name:</strong> ${data.name}<br>
+        <strong>Date:</strong> ${date}<br><br>
+
+        <div class="timeline">
+          <div class="step completed"><div class="step-circle">1</div><div>Submitted</div></div>
+          <div class="step ${steps.accepted}"><div class="step-circle">2</div><div>Accepted</div></div>
+          <div class="step ${steps.review}"><div class="step-circle">3</div><div>Review</div></div>
+          <div class="step ${steps.resolved}"><div class="step-circle">4</div><div>Resolved</div></div>
         </div>
 
-        <div class="step ${steps.accepted}">
-          <div class="step-circle">2</div>
-          <div class="step-label">Accepted</div>
-        </div>
+        <strong>Status:</strong>
+        <span class="status-badge" style="background:${color}">${status}</span>
 
-        <div class="step ${steps.review}">
-          <div class="step-circle">3</div>
-          <div class="step-label">In Review</div>
-        </div>
+        <br><br>
 
-        <div class="step ${steps.resolved}">
-          <div class="step-circle">4</div>
-          <div class="step-label">Resolved</div>
-        </div>
+        <strong>Message:</strong>
+        <div>${data.message}</div>
+
+        ${data.adminNote ? `<div class="admin-note">${data.adminNote}</div>` : ""}
+        ${status==="Rejected" ? `<div class="rejected-box">${data.rejectReason}</div>` : ""}
+
+        <button class="print-btn" onclick="window.print()">Print</button>
+
+        <a href="https://wa.me/91${data.phone}?text=${encodeURIComponent(
+          `Complaint ${data.trackingId} status: ${status}`
+        )}"
+        target="_blank"
+        style="display:block;margin-top:10px;padding:10px;background:#25D366;color:white;border-radius:6px;text-align:center;text-decoration:none;">
+        📲 WhatsApp Update
+        </a>
+
       </div>
+      `;
 
-      <strong>Status:</strong>
-      <span class="status-badge" style="background:${statusColor}">
-        ${status}
-      </span>
+      // ⭐ Rating
+      if(status==="Resolved"){
+        document.querySelectorAll(".star").forEach(star=>{
+          star.onclick = async ()=>{
+            await updateDoc(doc(db,"complaints",id),{
+              rating:Number(star.dataset.rate)
+            });
+            alert("Thanks!");
+          };
+        });
+      }
 
-      <br><br>
+    });
 
-      <strong>Message:</strong>
-      <div>${data.message}</div>
+  }catch(err){
+    console.error(err);
+    resultDiv.innerHTML = `<div class="result-card">❌ Error loading complaint</div>`;
+  }
 
-      ${status==="Rejected" ? `
-        <div class="rejected-box">
-          <strong>Rejection Reason:</strong><br>
-          ${data.rejectReason || "Not specified"}
-        </div>
-      ` : ""}
-
-      ${data.adminNote ? `
-        <div class="admin-note">
-          <strong>Admin Note:</strong><br>
-          ${data.adminNote}
-        </div>
-      ` : ""}
-
-      ${status==="Resolved" ? `
-      <div class="rating">
-        <p>Rate our service:</p>
-        ${[1,2,3,4,5].map(n=>`<span class="star" data-rate="${n}">★</span>`).join("")}
-      </div>
-      `:""}
-
-      <button class="print-btn" onclick="window.print()">Print Receipt</button>
-
-    </div>
-    `;
-
-    <a href="https://wa.me/91${data.phone}?text=${encodeURIComponent(`Your complaint (${data.trackingId}) status is: ${status}`)}"
-target="_blank"
-style="display:block;margin-top:10px;padding:10px;background:#25D366;color:white;border-radius:6px;text-align:center;text-decoration:none;">
-📲 Get Update on WhatsApp
-</a>
-  
-    if(status==="Resolved"){
-      document.querySelectorAll(".star").forEach(star=>{
-        star.onclick = async ()=>{
-          const rating = star.getAttribute("data-rate");
-          await updateDoc(doc(db,"complaints",id),{rating:Number(rating)});
-          alert("Thanks for rating!");
-        };
-      });
-    }
-
-  });
 };
 
 </script>
