@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel - Complaints</title>
+<title>Super Admin - Complaints</title>
 
 <style>
 body{
@@ -12,7 +12,6 @@ body{
   background:#f3f4f6;
 }
 
-  
 /* SIDEBAR */
 .sidebar{
   width:240px;
@@ -20,8 +19,6 @@ body{
   color:white;
   height:100vh;
   padding:20px;
-  position:sticky;
-  top:0;
 }
 
 .sidebar h2{ margin-bottom:20px; }
@@ -35,8 +32,8 @@ body{
   text-decoration:none;
 }
 
-.sidebar a.active,
-.sidebar a:hover{
+.sidebar a:hover,
+.sidebar a.active{
   background:#3b82f6;
 }
 
@@ -67,10 +64,6 @@ body{
 .red{ background:#dc2626; }
 
 /* FILTER */
-.filters{
-  margin-bottom:15px;
-}
-
 .filters button{
   padding:8px 14px;
   margin-right:5px;
@@ -94,17 +87,27 @@ body{
   box-shadow:0 4px 10px rgba(0,0,0,0.05);
 }
 
-/* INPUT */
-select, textarea{
+.badge{
+  float:right;
+  padding:4px 10px;
+  border-radius:20px;
+  color:white;
+  font-size:12px;
+}
+
+.pending{ background:#f59e0b; }
+.resolved{ background:#16a34a; }
+.rejected{ background:#dc2626; }
+
+textarea, select{
   width:100%;
+  margin:5px 0 10px;
   padding:8px;
-  margin-top:5px;
-  margin-bottom:10px;
 }
 
 button{
   border:none;
-  padding:6px 12px;
+  padding:8px 14px;
   border-radius:6px;
   cursor:pointer;
 }
@@ -116,24 +119,23 @@ button{
 
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
   <h2>Admin Panel</h2>
-
-  <a href="index.html">Dashboard</a>
-  <a href="members.html">Members</a>
-  <a href="notices.html">Notices</a>
-  <a href="gallery.html">Gallery</a>
-  <a href="events.html">Events</a>
-  <a href="schemes.html">Schemes</a>
-
+  <a href="admin-dashboard.html">Dashboard</a>
+  <a href="admin-members.html">Members</a>
+  <a href="admin-notices.html">Notices</a>
+  <a href="admin-gallery.html">Gallery</a>
+  <a href="admin-events.html">Events</a>
+  <a href="admin-schemes.html">Schemes</a>
   <a href="admin-complaints.html" class="active">Complaints</a>
 </div>
 
+<!-- MAIN -->
 <div class="content">
 
 <h1>📩 Manage Complaints</h1>
 
-<!-- STATS -->
 <div class="stats">
   <div class="stat blue" id="total">Total: 0</div>
   <div class="stat orange" id="pending">Pending: 0</div>
@@ -141,25 +143,23 @@ button{
   <div class="stat red" id="rejected">Rejected: 0</div>
 </div>
 
-<!-- SEARCH -->
 <input type="text" id="search" placeholder="Search..." style="padding:8px;width:300px;margin-bottom:10px;">
 
-<!-- FILTER -->
 <div class="filters">
-<button onclick="setFilter('All', this)" class="active">All</button>
-<button onclick="setFilter('Pending', this)">Pending</button>
-<button onclick="setFilter('Resolved', this)">Resolved</button>
-<button onclick="setFilter('Rejected', this)">Rejected</button>
+  <button onclick="setFilter('All', this)" class="active">All</button>
+  <button onclick="setFilter('Pending', this)">Pending</button>
+  <button onclick="setFilter('Resolved', this)">Resolved</button>
+  <button onclick="setFilter('Rejected', this)">Rejected</button>
 </div>
 
-<div id="list"></div>
+<div id="list">Loading...</div>
 
 </div>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, updateDoc, doc, query, where, onSnapshot }
+import { collection, query, where, onSnapshot, updateDoc, doc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const VILLAGE_ID = "wandhali";
@@ -167,12 +167,12 @@ const VILLAGE_ID = "wandhali";
 let complaints = [];
 let currentFilter = "All";
 
-/* LOAD DATA */
+/* REAL-TIME LOAD */
 function load(){
-list.innerHTML = "Loading complaints...";
+
   const q = query(
     collection(db,"complaints"),
-    where("villageId","==","wandhali")
+    where("villageId","==",VILLAGE_ID)
   );
 
   onSnapshot(q,(snap)=>{
@@ -184,10 +184,9 @@ list.innerHTML = "Loading complaints...";
     });
 
     render();
-
   });
-
 }
+
 /* FILTER */
 window.setFilter = function(filter, btn){
   currentFilter = filter;
@@ -225,6 +224,11 @@ function render(){
     else if(c.status==="Resolved") resolved++;
     else if(c.status==="Rejected") rejected++;
 
+    const badgeClass =
+      c.status==="Resolved" ? "resolved" :
+      c.status==="Rejected" ? "rejected" :
+      "pending";
+
     const waText = `Complaint ID: ${c.trackingId}
 Status: ${c.status}
 Reply: ${c.adminReply || ""}`;
@@ -236,33 +240,19 @@ Reply: ${c.adminReply || ""}`;
 
     div.innerHTML = `
       <b>${c.trackingId}</b>
-     <span style="
-  float:right;
-  padding:4px 10px;
-  border-radius:20px;
-  background:${
-    c.status==="Resolved" ? "#16a34a" :
-    c.status==="Rejected" ? "#dc2626" :
-    "#f59e0b"
-  };
-  color:white;
-  font-size:12px;
-">
-  ${c.status}
-</span>
+      <span class="badge ${badgeClass}">${c.status}</span>
 
       <p><b>${c.name}</b> (${c.phone})</p>
       <p>${c.message}</p>
 
       <label>Status</label>
       <select id="status-${c.id}">
-        <option ${c.status==="Submitted"?"selected":""}>Submitted</option>
         <option ${c.status==="Pending"?"selected":""}>Pending</option>
         <option ${c.status==="Resolved"?"selected":""}>Resolved</option>
         <option ${c.status==="Rejected"?"selected":""}>Rejected</option>
       </select>
 
-      <label>Reply</label>
+      <label>Admin Reply</label>
       <textarea id="reply-${c.id}">${c.adminReply || ""}</textarea>
 
       <button class="save" onclick="save('${c.id}')">Save</button>
@@ -294,7 +284,7 @@ window.save = async function(id){
   });
 
   alert("Updated ✅");
-  load();
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
