@@ -4,6 +4,48 @@
 <meta charset="UTF-8">
 <title>Admin - Notices</title>
 <link rel="stylesheet" href="admin.css">
+
+<style>
+input, textarea{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+button{
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.primary-btn{
+  background:#1e3a8a;
+  color:white;
+}
+
+.edit-btn{
+  background:#2563eb;
+  color:white;
+  margin-right:5px;
+}
+
+.delete-btn{
+  background:#ef4444;
+  color:white;
+}
+
+.search-box{
+  width:100%;
+  padding:10px;
+  margin-bottom:15px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+</style>
+
 </head>
 
 <body>
@@ -22,22 +64,26 @@
   </aside>
 
   <main class="content">
+
     <h1>📢 Manage Notices</h1>
 
-    <!-- ADD / EDIT FORM -->
-    <div class="card" style="margin-bottom:30px;">
+    <!-- FORM -->
+    <div class="card">
       <h3 id="formTitle">Add Notice</h3>
 
       <input type="text" id="noticeTitle" placeholder="Notice Title">
-      
       <textarea id="noticeDesc" placeholder="Description"></textarea>
-      
       <input type="file" id="noticeFile" accept="application/pdf">
-      <br><br>
 
-      <button id="addNoticeBtn">Upload Notice</button>
+      <button id="addNoticeBtn" class="primary-btn">Save Notice</button>
+
       <p id="noticeMsg"></p>
     </div>
+
+    <br>
+
+    <!-- SEARCH -->
+    <input type="text" id="searchInput" class="search-box" placeholder="Search notices...">
 
     <h3>All Notices</h3>
     <div id="noticeList"></div>
@@ -51,25 +97,29 @@
 <script type="module">
 
 import { db, storage } from "../js/firebase.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, where }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  collection, addDoc, getDocs, deleteDoc,
+  doc, updateDoc, query, where, orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { ref, uploadBytes, getDownloadURL, deleteObject }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import {
+  ref, uploadBytes, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const VILLAGE_ID = "wandhali";
 
-const noticeMsg = document.getElementById("noticeMsg");
-const noticeList = document.getElementById("noticeList");
-
 let editId = null;
+let allNotices = [];
 
-/* ================= ADD / UPDATE ================= */
+const noticeList = document.getElementById("noticeList");
+const noticeMsg = document.getElementById("noticeMsg");
+
+/* ================= SAVE ================= */
 
 document.getElementById("addNoticeBtn").onclick = async () => {
 
   const title = document.getElementById("noticeTitle").value.trim();
-  const description = document.getElementById("noticeDesc").value.trim();
+  const desc = document.getElementById("noticeDesc").value.trim();
   const file = document.getElementById("noticeFile").files[0];
 
   if(!title){
@@ -77,7 +127,7 @@ document.getElementById("addNoticeBtn").onclick = async () => {
     return;
   }
 
-  try {
+  try{
 
     noticeMsg.textContent = "Processing...";
 
@@ -87,21 +137,21 @@ document.getElementById("addNoticeBtn").onclick = async () => {
     if(file){
       const storageRef = ref(storage,"notices/"+Date.now()+"_"+file.name);
       await uploadBytes(storageRef,file);
-
       fileUrl = await getDownloadURL(storageRef);
       storagePath = storageRef.fullPath;
     }
 
     if(editId){
+
       await updateDoc(doc(db,"notices",editId),{
         title,
-        description,
-        ...(fileUrl && { fileUrl }),
-        ...(storagePath && { storagePath }),
+        description:desc,
+        ...(fileUrl && {fileUrl}),
+        ...(storagePath && {storagePath}),
         updatedAt:new Date()
       });
 
-      noticeMsg.textContent = "Notice updated ✅";
+      noticeMsg.textContent = "Updated ✅";
       editId = null;
       document.getElementById("formTitle").textContent = "Add Notice";
 
@@ -109,15 +159,15 @@ document.getElementById("addNoticeBtn").onclick = async () => {
 
       await addDoc(collection(db,"notices"),{
         title,
-        description,
+        description:desc,
         fileUrl,
         storagePath,
-        villageId: VILLAGE_ID,   // ✅ IMPORTANT
+        villageId: VILLAGE_ID,
         createdAt:new Date(),
         updatedAt:new Date()
       });
 
-      noticeMsg.textContent = "Notice uploaded ✅";
+      noticeMsg.textContent = "Uploaded ✅";
     }
 
     document.getElementById("noticeTitle").value="";
@@ -126,9 +176,9 @@ document.getElementById("addNoticeBtn").onclick = async () => {
 
     loadNotices();
 
-  } catch(error){
-    console.error(error);
-    noticeMsg.textContent = "Failed ❌";
+  }catch(e){
+    console.error(e);
+    noticeMsg.textContent="Error ❌";
   }
 };
 
@@ -141,69 +191,99 @@ async function loadNotices(){
 
   const q = query(
     collection(db,"notices"),
-    where("villageId","==",VILLAGE_ID),   // ✅ FILTER
+    where("villageId","==",VILLAGE_ID),
     orderBy("createdAt","desc")
   );
 
-  const snapshot = await getDocs(q);
+  const snap = await getDocs(q);
 
-  if(snapshot.empty){
-    noticeList.innerHTML="<p>No notices found.</p>";
+  allNotices = [];
+
+  snap.forEach(docSnap=>{
+    allNotices.push({id:docSnap.id, ...docSnap.data()});
+  });
+
+  renderNotices(allNotices);
+}
+
+
+/* ================= RENDER ================= */
+
+function renderNotices(data){
+
+  if(data.length === 0){
+    noticeList.innerHTML="<p>No notices found</p>";
     return;
   }
 
   noticeList.innerHTML="";
 
-  snapshot.forEach(docSnap=>{
+  data.forEach(n=>{
 
-    const data = docSnap.data();
+    const date = n.createdAt?.toDate?.().toLocaleDateString() || "";
 
     const card = document.createElement("div");
     card.className="card";
-    card.style.marginBottom="20px";
+    card.style.marginBottom="15px";
 
     card.innerHTML=`
-      <strong>${data.title}</strong><br>
-      <small>${data.description || ""}</small><br><br>
+      <strong>${n.title}</strong><br>
+      <small>${date}</small><br>
+      <p>${n.description || ""}</p>
 
-      ${data.fileUrl ? `<a href="${data.fileUrl}" target="_blank">📄 View PDF</a><br><br>` : ""}
+      ${n.fileUrl ? `<a href="${n.fileUrl}" target="_blank">📄 View PDF</a><br><br>`:""}
 
-      <button class="editBtn">Edit</button>
-      <button class="deleteBtn">Delete</button>
+      <button class="edit-btn">Edit</button>
+      <button class="delete-btn">Delete</button>
     `;
 
     /* EDIT */
-    card.querySelector(".editBtn").onclick = () => {
-      document.getElementById("noticeTitle").value = data.title;
-      document.getElementById("noticeDesc").value = data.description || "";
-
-      editId = docSnap.id;
+    card.querySelector(".edit-btn").onclick = ()=>{
+      document.getElementById("noticeTitle").value = n.title;
+      document.getElementById("noticeDesc").value = n.description || "";
+      editId = n.id;
 
       document.getElementById("formTitle").textContent = "Edit Notice";
-      window.scrollTo({ top:0, behavior:"smooth" });
+      window.scrollTo({top:0,behavior:"smooth"});
     };
 
     /* DELETE */
-    card.querySelector(".deleteBtn").onclick = async () => {
+    card.querySelector(".delete-btn").onclick = async ()=>{
 
-      if(!confirm("Delete this notice?")) return;
+      if(!confirm("Delete notice?")) return;
 
       try{
-        if(data.storagePath){
-          await deleteObject(ref(storage,data.storagePath));
+        if(n.storagePath){
+          await deleteObject(ref(storage,n.storagePath));
         }
 
-        await deleteDoc(doc(db,"notices",docSnap.id));
+        await deleteDoc(doc(db,"notices",n.id));
         loadNotices();
 
-      }catch(error){
-        alert("Delete failed ❌");
+      }catch{
+        alert("Delete failed");
       }
     };
 
     noticeList.appendChild(card);
   });
 }
+
+
+/* ================= SEARCH ================= */
+
+document.getElementById("searchInput").addEventListener("input",e=>{
+
+  const value = e.target.value.toLowerCase();
+
+  const filtered = allNotices.filter(n =>
+    n.title.toLowerCase().includes(value) ||
+    (n.description || "").toLowerCase().includes(value)
+  );
+
+  renderNotices(filtered);
+});
+
 
 loadNotices();
 
