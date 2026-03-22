@@ -1362,8 +1362,14 @@ html {
 
 <script type="module">
 import { db } from "./js/firebase.js";
-import { collection, getDocs, query, where, orderBy }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy,
+  onSnapshot   // ✅ ADD THIS
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 /* HERO */
 const slider = document.getElementById("heroSlider");
 const totalSlides = document.querySelectorAll(".hero-slide").length;
@@ -1442,7 +1448,11 @@ async function loadWhatsNew(){
   container.innerHTML = "";
 
   const snap = await getDocs(
-    query(collection(db,"notices"), orderBy("createdAt","desc"))
+    query(
+      collection(db,"notices"),
+      where("villageId","==","wandhali"),
+      orderBy("createdAt","desc")
+    )
   );
 
   if(snap.empty){
@@ -1455,13 +1465,11 @@ async function loadWhatsNew(){
   snap.forEach(doc=>{
     const d = doc.data();
 
-    if(d.fileUrl){
-      content += `<a href="${d.fileUrl}" target="_blank">
-                    ${d.title}
-                  </a>`;
-    } else {
-      content += `<a href="#">${d.title}</a>`;
-    }
+    content += `
+      <a href="${d.fileUrl || '#'}" target="_blank">
+        ${d.title || "Notice"}
+      </a>
+    `;
   });
 
   content += '</div>';
