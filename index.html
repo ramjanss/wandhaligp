@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Official website of Gram Panchayat Wandhali, Taluka Warora, District Chandrapur, Maharashtra. Get notices, government schemes, events, grievance services and transparency dashboard.">
-<meta name="keywords" content="Gram Panchayat Wandhali, Wandhali GP, Wandhali Chandrapur, Warora Gram Panchayat, Maharashtra village governance">
+<meta name="description" content="Gram Panchayat Wandhali Official Website | ग्रामपंचायत वंधली अधिकृत संकेतस्थळ">
+<meta name="keywords" content="Gram Panchayat Wandhali, वंधली ग्रामपंचायत, Chandrapur GP">
 <meta name="author" content="Gram Panchayat Wandhali">
 <meta name="robots" content="index, follow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,7 +32,7 @@
 
 body{
   margin:0;
-  font-family:'Poppins',sans-serif;
+  font-family:'Noto Sans', 'Noto Sans Devanagari', sans-serif;
   color:var(--text);
 }
 body{
@@ -1297,6 +1297,10 @@ html {
 
   </div>
 
+<select id="langSwitcher" style="padding:6px;border-radius:6px;">
+  <option value="en">English</option>
+  <option value="mr">मराठी</option>
+</select>
 </header>
 
   <nav class="gov-navbar">
@@ -1322,34 +1326,34 @@ html {
 
   <div class="mega-menu">
     <div class="mega-column">
-      <h4>About</h4>
-      <a href="about.html">Village Profile</a>
-      <a href="about.html#history">History</a>
-      <a href="about.html#demographics">Demographics</a>
+      <h4 data-en="About" data-mr="माहिती">About</h4>
+      <a href="about.html" data-en="Village Profile" data-mr="गाव प्रोफाइल">Village Profile</a>
+      <a href="about.html#history" data-en="History" data-mr="ग्रामपंचायत इतिहास">History</a>
+      <a href="about.html#demographics" data-en="Demographics" data-mr="लोकसंख्याशास्त्र">Demographics</a>
     </div>
 
     <div class="mega-column">
-      <h4>Administration</h4>
-      <a href="members.html">Leadership</a>
-      <a href="members.html#employeeContainer">Employees</a>
-      <a href="members.html#bodyContainer">Committees</a>
+      <h4 data-en="Administration" data-mr="प्रशासन">Administration</h4>
+      <a href="members.html" data-en="Main Officials" data-mr="मुख्य अधिकारी">Members</a>
+      <a href="members.html#bodyContainer" data-en="Members" data-mr="सदस्य">Committees</a>
+      <a href="members.html#employeeContainer" data-en="Employee" data-mr="कर्मचारी">Employees</a>
     </div>
 
     <div class="mega-column">
-      <h4>Reports</h4>
-      <a href="reports.html">Annual Report</a>
-      <a href="reports.html#budget">Budget</a>
-      <a href="reports.html#audit">Audit Reports</a>
+      <h4 data-en="Reports" data-mr="अहवाल">Reports</h4>
+      <a href="reports.html" data-en="Reports" data-mr="अहवाल">Reports</a>
+      <a href="reports.html#budget" data-en="Budget" data-mr="अंदाजपत्रक">Budget</a>
+      <a href="reports.html#audit" data-en="Audit" data-mr="लेखापरीक्षा">Audit Reports</a>
     </div>
   </div>
 </li>
 
-<li><a href="schemes.html">Schemes</a></li>
-<li><a href="events.html">Events</a></li>
-<li><a href="index.html#gallery">Gallery</a></li>
-<li><a href="notices.html">Notices</a></li>
-<li><a href="contact.html">Contact</a></li>
-<li><a href="login.html">Admin</a></li>     
+<li><a href="schemes.html" data-en="Schemes" data-mr="योजना">Schemes</a></li>
+<li><a href="events.html" data-en="Events" data-mr="कार्यक्रम">Events</a></li>
+<li><a href="notices.html" data-en="Notices" data-mr="सूचना">Notices</a></li>
+<li><a href="contact.html" data-en="Contact" data-mr="संपर्क">Contact</a></li>
+<li><a href="login.html" data-en="Admin" data-mr="प्रशासन">Admin</a></li>
+<li><a href="index.html#gallery" data-en="Gallery" data-mr="चित्रशाला">Gallery</a></li>
 <li class="right-item">
   <button id="langToggle" style="
     background:#1e3a8a;
@@ -1389,7 +1393,11 @@ html {
 
 <!-- WHAT'S NEW TICKER -->
 <div class="whats-new-bar">
-  <div class="whats-label">What's New :</div>
+  <div class="whats-label"
+     data-en="What's New :"
+     data-mr="नवीन घडामोडी :">
+What's New :
+</div>
   <div class="whats-scroll">
     <div id="whatsNewTicker"></div>
   </div>
@@ -1409,7 +1417,7 @@ html {
     <div class="stat-icon">📨</div>
     <div class="stat-info">
       <h3 id="totalComplaints">0</h3>
-      <p>Total Complaints</p>
+      <p data-en="Total Complaints" data-mr="एकूण तक्रारी">Total Complaints</p>
     </div>
   </div>
 
@@ -1417,7 +1425,7 @@ html {
     <div class="stat-icon">✅</div>
     <div class="stat-info">
       <h3 id="resolvedComplaints">0</h3>
-      <p>Resolved</p>
+<p data-en="Resolved" data-mr="निकाली">Resolved</p>
     </div>
   </div>
 
@@ -1425,7 +1433,7 @@ html {
     <div class="stat-icon">⏳</div>
     <div class="stat-info">
       <h3 id="pendingComplaints">0</h3>
-      <p>Pending</p>
+<p data-en="Pending" data-mr="प्रलंबित">Pending</p>
     </div>
   </div>
 
@@ -1433,7 +1441,7 @@ html {
     <div class="stat-icon">❌</div>
     <div class="stat-info">
       <h3 id="rejectedComplaints">0</h3>
-      <p>Rejected</p>
+<p data-en="Rejected" data-mr="नाकारले">Rejected</p>
     </div>
   </div>
 
@@ -1441,7 +1449,7 @@ html {
     <div class="stat-icon">📢</div>
     <div class="stat-info">
       <h3 id="totalNotices">0</h3>
-      <p>Public Notices</p>
+<p data-en="Public Notices" data-mr="सार्वजनिक सूचना">Public Notices</p>    
     </div>
   </div>
 
@@ -1465,10 +1473,10 @@ html {
       <div class="action-card register">
         <div class="action-icon">📝</div>
         <div class="action-content">
-          <h3>Register Complaint</h3>
-          <p>Submit your grievance to Gram Panchayat Office</p>
+<h3 data-en="Register Complaint" data-mr="तक्रार नोंदवा">Register Complaint</h3>
+          <p data-en="Submit your grievance to Gram Panchayat Office" data-mr="आपली तक्रार ग्रामपंचायत कार्यालयात सादर करा.">Submit your grievance to Gram Panchayat Office</p>
         </div>
-        <a href="complaint.html" class="action-btn">Register Now</a>
+        <a href="complaint.html" class="action-btn" data-en="Register Now" data-mr="आता नोंदणी करा">Register Now</a>
       </div>
 
       <!-- Track Complaint -->
@@ -1542,6 +1550,30 @@ import {
   orderBy,
   onSnapshot   // ✅ ADD THIS
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const translations = {
+
+  en: {
+    title: "Gram Panchayat Wandhali",
+    schemes: "Schemes",
+    events: "Events",
+    notices: "Notices",
+    contact: "Contact",
+    leadership: "Leadership",
+    dashboard: "Dashboard"
+  },
+
+  mr: {
+    title: "ग्रामपंचायत वांधळी",
+    schemes: "योजना",
+    events: "कार्यक्रम",
+    notices: "सूचना",
+    contact: "संपर्क",
+    leadership: "नेतृत्व",
+    dashboard: "डॅशबोर्ड"
+  }
+
+};
 /* HERO */
 const slider = document.getElementById("heroSlider");
 const totalSlides = document.querySelectorAll(".hero-slide").length;
