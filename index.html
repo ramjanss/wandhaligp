@@ -1114,7 +1114,110 @@ html {
 .section h2.reveal::after{
   width:120px;
 }
-    
+
+ /* ===== MOBILE SAFE FIX ===== */
+
+.mobile-toggle{
+  display:none;
+  justify-content:flex-end;
+  padding:10px 15px;
+}
+
+#menuBtn{
+  font-size:22px;
+  background:none;
+  border:none;
+  cursor:pointer;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  /* SHOW MENU BUTTON */
+  .mobile-toggle{
+    display:flex;
+  }
+
+  /* NAV */
+  .nav-menu{
+    display:none !important;
+    flex-direction:column;
+    width:100%;
+    background:#fff;
+  }
+
+  .nav-menu.show{
+    display:flex !important;
+  }
+
+  .nav-menu li{
+    border-bottom:1px solid #eee;
+  }
+
+  .nav-menu li a{
+    padding:12px;
+    font-size:14px;
+  }
+
+  /* HEADER FIX */
+  .gov-header-container{
+    flex-direction:column;
+    text-align:center;
+    gap:15px;
+  }
+
+  .gov-left{
+    flex-direction:column;
+  }
+
+  .emblem-box img{
+    height:70px;
+  }
+
+  .gp-english{
+    font-size:22px;
+  }
+
+  .gov-right{
+    justify-content:center;
+  }
+
+  .mh-logo{
+    height:55px;
+  }
+
+  .digital-logo{
+    height:45px;
+  }
+
+  /* HERO */
+  .gov-hero{
+    height:250px;
+  }
+
+  /* SECTION SPACING FIX */
+  .section,
+  .transparency-section,
+  .citizen-action-section,
+  .leadership-section{
+    padding:50px 15px;
+  }
+
+  /* GRID FIX */
+  .scheme-grid,
+  .citizen-action-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  #leaderContainer{
+    grid-template-columns:1fr !important;
+  }
+
+  .stat-card{
+    max-width:100%;
+  }
+
+}   
 </style>
 
   <script type="application/ld+json">
@@ -1197,6 +1300,9 @@ html {
 </header>
 
   <nav class="gov-navbar">
+  <div class="mobile-toggle">
+  <button id="menuBtn">☰</button>
+</div>
   <div class="nav-container">
     <ul class="nav-menu">
 <li>
@@ -2136,6 +2242,15 @@ document.getElementById("eventModal").style.display="flex";
 
 }
 </script> 
+
+<script>
+
+// MENU TOGGLE
+document.getElementById("menuBtn").onclick = function(){
+  document.querySelector(".nav-menu").classList.toggle("show");
+};
+
+</script>  
   
 </body>
 </html>
