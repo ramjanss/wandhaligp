@@ -10,59 +10,36 @@
 <style>
 :root{
   --primary:#1e3a8a;
-  --accent:#15803d;
   --light:#f8fafc;
-  --text:#1f2937;
 }
 
 body{
   margin:0;
   font-family:'Noto Sans',sans-serif;
-  color:var(--text);
-}
-
-/* TOP STRIP */
-.gov-top-strip{
-  background:#f5f5f5;
-  text-align:center;
-  padding:6px 0;
-  font-size:14px;
 }
 
 /* HEADER */
+.gov-top-strip{
+  background:#f5f5f5;
+  text-align:center;
+  padding:6px;
+}
+
 .gov-header{
-  background:#fff;
-  padding:18px 25px;
+  padding:18px;
   border-bottom:1px solid #ddd;
 }
 
-.gov-header-container{
-  max-width:1200px;
-  margin:auto;
-  display:flex;
-  align-items:center;
-  gap:20px;
-}
-
-.emblem-box img{height:90px;}
-
 .gp-english{
   font-family:'Noto Serif',serif;
-  font-size:30px;
+  font-size:28px;
   font-weight:700;
 }
 
-/* NAVBAR */
-.gov-navbar{
-  background:#e9e9e9;
-}
-
+/* NAV */
 .nav-menu{
-  list-style:none;
   display:flex;
-  max-width:1200px;
-  margin:auto;
-  padding:0;
+  background:#e9e9e9;
 }
 
 .nav-menu a{
@@ -73,22 +50,9 @@ body{
 
 .nav-menu a.active{
   background:#dcdcdc;
-  font-weight:600;
 }
 
-/* TITLE */
-.page-title{
-  background:var(--light);
-  padding:60px 20px;
-  text-align:center;
-}
-
-.page-title h1{
-  font-size:34px;
-  color:var(--primary);
-}
-
-/* GRID */
+/* SECTION */
 .section{
   padding:60px 20px;
   max-width:1100px;
@@ -101,103 +65,89 @@ body{
   border-radius:12px;
   padding:20px;
   margin-bottom:20px;
-  display:flex;
-  justify-content:space-between;
-  gap:20px;
+  cursor:pointer;
   transition:0.3s;
 }
 
 .notice-card:hover{
   transform:translateY(-5px);
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  box-shadow:0 10px 20px rgba(0,0,0,0.08);
 }
 
-.notice-title{
-  font-weight:600;
-  color:var(--primary);
+/* MODAL */
+#noticeModal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
 }
 
-.notice-date{
-  font-size:13px;
-  color:#666;
-  margin-top:4px;
+.modal-box{
+  background:white;
+  padding:25px;
+  border-radius:10px;
+  max-width:600px;
+  width:100%;
+  position:relative;
 }
 
-.notice-desc{
-  font-size:14px;
-  margin-top:10px;
-  color:#444;
+.close-btn{
+  position:absolute;
+  right:15px;
+  top:10px;
+  cursor:pointer;
+  font-size:20px;
 }
 
-.notice-link{
-  background:var(--primary);
-  color:white;
+.notice-btn{
+  display:inline-block;
+  margin-top:15px;
   padding:8px 14px;
+  background:#1e3a8a;
+  color:white;
   border-radius:6px;
   text-decoration:none;
-  height:fit-content;
-}
-
-/* NEW badge */
-.new-badge{
-  background:#dc2626;
-  color:white;
-  font-size:10px;
-  padding:3px 6px;
-  border-radius:10px;
-  margin-left:8px;
-}
-
-/* FOOTER */
-.gov-footer{
-  background:var(--primary);
-  color:white;
-  text-align:center;
-  padding:30px;
-  margin-top:60px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="gov-top-strip">
-महाराष्ट्र शासन | GOVERNMENT OF MAHARASHTRA
-</div>
+<div class="gov-top-strip">Government of Maharashtra</div>
 
 <header class="gov-header">
-<div class="gov-header-container">
-<div class="emblem-box">
-<img src="assets/india-emblem.png">
-</div>
-<div>
 <h1 class="gp-english">Gram Panchayat Wandhali</h1>
-<p>Taluka Warora | District Chandrapur</p>
-</div>
-</div>
 </header>
 
-<nav class="gov-navbar">
-<ul class="nav-menu">
-<li><a href="index.html">Home</a></li>
-<li><a href="schemes.html">Schemes</a></li>
-<li><a href="events.html">Events</a></li>
-<li><a href="notices.html" class="active">Notices</a></li>
-<li><a href="contact.html">Contact</a></li>
-</ul>
+<nav class="nav-menu">
+<a href="index.html">Home</a>
+<a href="schemes.html">Schemes</a>
+<a href="events.html">Events</a>
+<a href="notices.html" class="active">Notices</a>
 </nav>
-
-<div class="page-title">
-<h1>Public Notices</h1>
-</div>
 
 <section class="section">
 <div id="noticeContainer"></div>
 </section>
 
-<footer class="gov-footer">
-© <span id="year"></span> Gram Panchayat Wandhali
-</footer>
+<!-- MODAL -->
+<div id="noticeModal">
+  <div class="modal-box">
+
+    <span class="close-btn" id="closeModal">✕</span>
+
+    <h3 id="modalTitle"></h3>
+    <p id="modalDate" style="color:#666;font-size:13px;"></p>
+    <p id="modalDesc"></p>
+
+    <a id="modalPDF" class="notice-btn" target="_blank">📄 View PDF</a>
+    <a id="modalWhatsApp" class="notice-btn" target="_blank">📲 Share</a>
+
+  </div>
+</div>
 
 <script type="module">
 
@@ -205,75 +155,74 @@ import { db } from "./js/firebase.js";
 import { collection, getDocs, query, where, orderBy }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-async function loadNotices(){
-
 const container=document.getElementById("noticeContainer");
-container.innerHTML="Loading...";
 
-try{
+async function loadNotices(){
 
 const snap=await getDocs(
 query(
-  collection(db,"notices"),
-  where("villageId","==","wandhali"),   // ✅ IMPORTANT
-  orderBy("createdAt","desc")
+collection(db,"notices"),
+where("villageId","==","wandhali"),
+orderBy("createdAt","desc")
 )
 );
-
-if(snap.empty){
-container.innerHTML="<p>No notices available.</p>";
-return;
-}
 
 container.innerHTML="";
 
 snap.forEach(doc=>{
 const d=doc.data();
 
-let date="";
-let isNew=false;
-
-if(d.createdAt?.toDate){
-const dt=d.createdAt.toDate();
-
-date=dt.getDate().toString().padStart(2,'0')+"/"+
-(dt.getMonth()+1).toString().padStart(2,'0')+"/"+
-dt.getFullYear();
-
-const diff=(new Date()-dt)/(1000*60*60*24);
-if(diff<=7) isNew=true;
-}
-
 container.innerHTML+=`
-<div class="notice-card">
-
-<div>
-<div class="notice-title">
-${d.noticeNumber || ""} ${d.title || ""} 
-${isNew ? '<span class="new-badge">NEW</span>' : ""}
-</div>
-
-<div class="notice-date">${date}</div>
-
-${d.description ? `<div class="notice-desc">${d.description}</div>` : ""}
-
-</div>
-
-${d.fileUrl ? `<a href="${d.fileUrl}" target="_blank" class="notice-link">View</a>` : ""}
-
+<div class="notice-card" onclick='openNotice(${JSON.stringify(d)})'>
+<strong>${d.noticeNumber || ""} ${d.title}</strong>
 </div>
 `;
 });
 
-}catch(e){
-console.error(e);
-container.innerHTML="Error loading notices";
-}
 }
 
 loadNotices();
 
-document.getElementById("year").textContent=new Date().getFullYear();
+/* OPEN MODAL */
+window.openNotice=function(d){
+
+document.getElementById("modalTitle").textContent = d.title;
+
+let date="";
+if(d.createdAt?.toDate){
+const dt=d.createdAt.toDate();
+date = dt.toLocaleDateString();
+}
+
+document.getElementById("modalDate").textContent = date;
+document.getElementById("modalDesc").textContent = d.description || "";
+
+document.getElementById("modalPDF").href = d.fileUrl || "#";
+
+/* WhatsApp */
+const msg = `Notice: ${d.title}`;
+document.getElementById("modalWhatsApp").href =
+`https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+document.getElementById("noticeModal").style.display="flex";
+};
+
+/* CLOSE */
+document.getElementById("closeModal").onclick=()=>{
+document.getElementById("noticeModal").style.display="none";
+};
+
+document.getElementById("noticeModal").onclick=(e)=>{
+if(e.target.id==="noticeModal"){
+document.getElementById("noticeModal").style.display="none";
+}
+};
+
+document.addEventListener("keydown",(e)=>{
+if(e.key==="Escape"){
+document.getElementById("noticeModal").style.display="none";
+}
+});
 
 </script>
 
