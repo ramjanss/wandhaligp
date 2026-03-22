@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="admin.css">
 
 <style>
-
 body{
   font-family: 'Poppins', sans-serif;
 }
@@ -52,14 +51,21 @@ body{
 
 button{
   cursor:pointer;
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  margin-right:5px;
 }
 
-@media(max-width:768px){
-  .stats{
-    flex-direction:column;
-  }
-}
+.save-btn{background:#1e3a8a;color:white;}
+.wa-btn{background:#25D366;color:white;}
 
+textarea, select{
+  width:100%;
+  padding:6px;
+  margin-top:5px;
+  margin-bottom:10px;
+}
 </style>
 
 </head>
@@ -92,14 +98,9 @@ button{
   <div class="stat-box rejected">Rejected: <span id="rejected">0</span></div>
 </div>
 
-<!-- SEARCH + FILTER -->
+<!-- SEARCH -->
 
-<div style="margin-bottom:20px;">
-  <input id="searchInput" placeholder="Search..." style="padding:8px;width:250px;">
-  <button onclick="filterData('all')">All</button>
-  <button onclick="filterData('Pending')">Pending</button>
-  <button onclick="filterData('Resolved')">Resolved</button>
-</div>
+<input id="searchInput" placeholder="Search..." style="padding:8px;width:250px;margin-bottom:20px;">
 
 <div id="complaintsContainer"></div>
 
@@ -117,12 +118,14 @@ const VILLAGE_ID = "wandhali";
 
 let allComplaints = [];
 
-/* LOAD */
+/* LOAD DATA */
 async function load(){
+
+  container.innerHTML = "Loading...";
 
   const q = query(
     collection(db,"complaints"),
-    where("villageId","==",VILLAGE_ID),
+    where("villageId","==", VILLAGE_ID),
     orderBy("createdAt","desc")
   );
 
@@ -131,7 +134,10 @@ async function load(){
   allComplaints = [];
 
   snap.forEach(docSnap=>{
-    allComplaints.push({id:docSnap.id,...docSnap.data()});
+    allComplaints.push({
+      id: docSnap.id,
+      ...docSnap.data()
+    });
   });
 
   updateStats();
@@ -142,6 +148,7 @@ async function load(){
 function updateStats(){
 
   document.getElementById("total").textContent = allComplaints.length;
+
   document.getElementById("pending").textContent =
     allComplaints.filter(c=>c.status==="Pending").length;
 
@@ -157,8 +164,8 @@ function render(data){
 
   container.innerHTML = "";
 
-  if(data.length===0){
-    container.innerHTML = "No complaints found";
+  if(data.length === 0){
+    container.innerHTML = "<p>No complaints found.</p>";
     return;
   }
 
@@ -166,107 +173,95 @@ function render(data){
 
     const priorityClass = c.priority || "low";
 
-    const card = document.createElement("div");
-    card.className = `card ${priorityClass}`;
-
     const phone = c.phone;
 
-   const whatsappMsg = `Complaint Update
+    const whatsappMsg =
+      "Complaint Update\n\n" +
+      "Tracking ID: " + c.trackingId + "\n" +
+      "Status: " + c.status + "\n\n" +
+      "Admin Reply:\n" +
+      (c.adminReply || "No reply yet") +
+      "\n\n- Gram Panchayat Wandhali";
 
-Tracking ID: ${c.trackingId}
-Status: ${c.status}
+    const waLink =
+      "https://wa.me/91" + phone +
+      "?text=" + encodeURIComponent(whatsappMsg);
 
-Admin Reply:
-${c.adminReply || "No reply yet"}
+    const card = document.createElement("div");
+    card.className = "card " + priorityClass;
 
-- Gram Panchayat Wandhali`;
+    card.innerHTML =
+      "<strong>" + c.trackingId + "</strong>" +
+      "<span style='float:right'>" + (c.status || "Submitted") + "</span>" +
 
-    const waLink = `https://wa.me/91${phone}?text=${encodeURIComponent(whatsappMsg)}`;
-<label>Admin Reply</label>
-<textarea id="reply-${c.id}" style="width:100%;padding:6px;">
-  ${c.adminReply || ""}
-</textarea>
-    card.innerHTML = `
-      <strong>${c.trackingId}</strong>
-      <span style="float:right">${c.status}</span>
+      "<p><b>" + c.name + "</b> (" + c.phone + ")</p>" +
 
-      <p><b>${c.name}</b> (${c.phone})</p>
-      <p>${c.message}</p>
+      "<p>" + c.message + "</p>" +
 
-      <label>Status</label>
-      <select id="status-${c.id}">
-        <option>Submitted</option>
-        <option>Pending</option>
-        <option>Resolved</option>
-        <option>Rejected</option>
-      </select>
+      "<label>Status</label>" +
+      "<select id='status-" + c.id + "'>" +
+      "<option>Submitted</option>" +
+      "<option>Pending</option>" +
+      "<option>Resolved</option>" +
+      "<option>Rejected</option>" +
+      "</select>" +
 
-      <label>Priority</label>
-      <select id="priority-${c.id}">
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
+      "<label>Priority</label>" +
+      "<select id='priority-" + c.id + "'>" +
+      "<option value='low'>Low</option>" +
+      "<option value='medium'>Medium</option>" +
+      "<option value='high'>High</option>" +
+      "</select>" +
 
-      <br><br>
+      "<label>Admin Reply</label>" +
+      "<textarea id='reply-" + c.id + "'>" +
+      (c.adminReply || "") +
+      "</textarea>" +
 
-      <button onclick="save('${c.id}')">Save</button>
+```
+  "<button class='save-btn' onclick=\"save('" + c.id + "')\">Save</button>" +
 
-      <a href="${waLink}" target="_blank">
-        <button style="background:#25D366;color:white;">
-          WhatsApp Reply
-        </button>
-      </a>
-    `;
+  "<a href='" + waLink + "' target='_blank'>" +
+  "<button class='wa-btn'>WhatsApp</button></a>";
 
-    container.appendChild(card);
+container.appendChild(card);
 
-    document.getElementById(`status-${c.id}`).value = c.status || "Submitted";
-    document.getElementById(`priority-${c.id}`).value = c.priority || "low";
-  });
+document.getElementById("status-" + c.id).value = c.status || "Submitted";
+document.getElementById("priority-" + c.id).value = c.priority || "low";
+```
+
+});
 }
 
 /* SAVE */
 window.save = async function(id){
 
-  const status = document.getElementById(`status-${id}`).value;
-  const priority = document.getElementById(`priority-${id}`).value;
-  const reply = document.getElementById(`reply-${id}`).value;
+const status = document.getElementById("status-"+id).value;
+const priority = document.getElementById("priority-"+id).value;
+const reply = document.getElementById("reply-"+id).value;
 
-  await updateDoc(doc(db,"complaints",id),{
-    status: status,
-    priority: priority,
-    adminReply: reply,   // ✅ NEW FIELD
-    updatedAt: new Date()
-  });
+await updateDoc(doc(db,"complaints",id),{
+status: status,
+priority: priority,
+adminReply: reply,
+updatedAt: new Date()
+});
 
-  alert("Updated Successfully");
-  load();
-};
-
-/* FILTER */
-window.filterData = function(status){
-
-  if(status==="all"){
-    render(allComplaints);
-    return;
-  }
-
-  const filtered = allComplaints.filter(c=>c.status===status);
-  render(filtered);
+alert("Updated Successfully");
+load();
 };
 
 /* SEARCH */
-document.getElementById("searchInput").addEventListener("input",function(){
+document.getElementById("searchInput").addEventListener("input", function(){
 
-  const val = this.value.toLowerCase();
+const val = this.value.toLowerCase();
 
-  const filtered = allComplaints.filter(c=>
-    c.trackingId.toLowerCase().includes(val) ||
-    c.name.toLowerCase().includes(val)
-  );
+const filtered = allComplaints.filter(c =>
+(c.trackingId || "").toLowerCase().includes(val) ||
+(c.name || "").toLowerCase().includes(val)
+);
 
-  render(filtered);
+render(filtered);
 });
 
 /* INIT */
