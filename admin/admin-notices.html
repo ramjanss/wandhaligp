@@ -21,21 +21,9 @@ button{
   cursor:pointer;
 }
 
-.primary-btn{
-  background:#1e3a8a;
-  color:white;
-}
-
-.edit-btn{
-  background:#2563eb;
-  color:white;
-  margin-right:5px;
-}
-
-.delete-btn{
-  background:#ef4444;
-  color:white;
-}
+.primary-btn{background:#1e3a8a;color:white;}
+.edit-btn{background:#2563eb;color:white;margin-right:5px;}
+.delete-btn{background:#ef4444;color:white;}
 
 .search-box{
   width:100%;
@@ -45,7 +33,6 @@ button{
   border:1px solid #ccc;
 }
 </style>
-
 </head>
 
 <body>
@@ -76,7 +63,6 @@ button{
       <input type="file" id="noticeFile" accept="application/pdf">
 
       <button id="addNoticeBtn" class="primary-btn">Save Notice</button>
-
       <p id="noticeMsg"></p>
     </div>
 
@@ -141,6 +127,19 @@ document.getElementById("addNoticeBtn").onclick = async () => {
       storagePath = storageRef.fullPath;
     }
 
+    /* 🔢 AUTO SERIAL NUMBER */
+    let noticeNumber = 1;
+
+    if(!editId){
+      const countSnap = await getDocs(
+        query(
+          collection(db,"notices"),
+          where("villageId","==",VILLAGE_ID)
+        )
+      );
+      noticeNumber = countSnap.size + 1;
+    }
+
     if(editId){
 
       await updateDoc(doc(db,"notices",editId),{
@@ -158,6 +157,7 @@ document.getElementById("addNoticeBtn").onclick = async () => {
     }else{
 
       await addDoc(collection(db,"notices"),{
+        noticeNumber,   // ✅ SERIAL NUMBER
         title,
         description:desc,
         fileUrl,
@@ -227,7 +227,7 @@ function renderNotices(data){
     card.style.marginBottom="15px";
 
     card.innerHTML=`
-      <strong>${n.title}</strong><br>
+      <strong>#${n.noticeNumber || "-"} - ${n.title}</strong><br>
       <small>${date}</small><br>
       <p>${n.description || ""}</p>
 
@@ -283,7 +283,6 @@ document.getElementById("searchInput").addEventListener("input",e=>{
 
   renderNotices(filtered);
 });
-
 
 loadNotices();
 
