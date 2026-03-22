@@ -21,16 +21,15 @@ body{
   color:var(--text);
 }
 
-/* ===== TOP STRIP ===== */
+/* TOP STRIP */
 .gov-top-strip{
   background:#f5f5f5;
   text-align:center;
   padding:6px 0;
   font-size:14px;
-  border-bottom:1px solid #ddd;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .gov-header{
   background:#fff;
   padding:18px 25px;
@@ -41,78 +40,43 @@ body{
   max-width:1200px;
   margin:auto;
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.gov-left{
-  display:flex;
   align-items:center;
   gap:20px;
 }
 
-.emblem-box img{
-  height:95px;
-}
+.emblem-box img{height:90px;}
 
 .gp-english{
-  font-family:'Noto Serif', serif;
+  font-family:'Noto Serif',serif;
   font-size:30px;
   font-weight:700;
-  margin:5px 0;
 }
 
-/* ===== NAVBAR ===== */
+/* NAVBAR */
 .gov-navbar{
   background:#e9e9e9;
-  border-bottom:1px solid #d5d5d5;
 }
 
 .nav-menu{
   list-style:none;
-  margin:0;
-  padding:0;
   display:flex;
   max-width:1200px;
   margin:auto;
+  padding:0;
 }
 
-.nav-menu li a{
-  display:block;
+.nav-menu a{
   padding:14px 18px;
   text-decoration:none;
   color:#222;
 }
 
-.nav-menu li a:hover{
+.nav-menu a.active{
   background:#dcdcdc;
-}
-
-.new-badge{
-  background:#dc2626;
-  color:white;
-  font-size:11px;
-  padding:3px 8px;
-  border-radius:20px;
-  margin-left:8px;
   font-weight:600;
-  animation:pulseNew 1.8s infinite;
 }
 
-/* Soft professional pulse */
-@keyframes pulseNew{
-  0%{
-    box-shadow:0 0 0 0 rgba(220,38,38,0.6);
-  }
-  70%{
-    box-shadow:0 0 0 6px rgba(220,38,38,0);
-  }
-  100%{
-    box-shadow:0 0 0 0 rgba(220,38,38,0);
-  }
-}
-  
-/* ===== PAGE TITLE ===== */
+/* TITLE */
 .page-title{
   background:var(--light);
   padding:60px 20px;
@@ -120,65 +84,71 @@ body{
 }
 
 .page-title h1{
-  font-family:'Noto Serif',serif;
-  font-size:36px;
+  font-size:34px;
   color:var(--primary);
-  margin:0;
 }
 
-/* ===== NOTICE SECTION ===== */
+/* GRID */
 .section{
+  padding:60px 20px;
   max-width:1100px;
   margin:auto;
-  padding:60px 20px;
 }
 
 .notice-card{
-  background:#fff;
+  background:white;
   border:1px solid #e5e7eb;
+  border-radius:12px;
   padding:20px;
   margin-bottom:20px;
-  border-radius:10px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  gap:20px;
   transition:0.3s;
 }
 
 .notice-card:hover{
-  box-shadow:0 8px 20px rgba(0,0,0,0.08);
-}
-
-.notice-left{
-  display:flex;
-  flex-direction:column;
+  transform:translateY(-5px);
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
 .notice-title{
   font-weight:600;
-  font-size:16px;
-  margin-bottom:6px;
+  color:var(--primary);
 }
 
 .notice-date{
   font-size:13px;
   color:#666;
+  margin-top:4px;
+}
+
+.notice-desc{
+  font-size:14px;
+  margin-top:10px;
+  color:#444;
 }
 
 .notice-link{
   background:var(--primary);
   color:white;
-  padding:8px 16px;
+  padding:8px 14px;
   border-radius:6px;
   text-decoration:none;
-  font-size:13px;
+  height:fit-content;
 }
 
-.notice-link:hover{
-  background:#162f6a;
+/* NEW badge */
+.new-badge{
+  background:#dc2626;
+  color:white;
+  font-size:10px;
+  padding:3px 6px;
+  border-radius:10px;
+  margin-left:8px;
 }
 
-/* ===== FOOTER ===== */
+/* FOOTER */
 .gov-footer{
   background:var(--primary);
   color:white;
@@ -197,7 +167,6 @@ body{
 
 <header class="gov-header">
 <div class="gov-header-container">
-<div class="gov-left">
 <div class="emblem-box">
 <img src="assets/india-emblem.png">
 </div>
@@ -206,16 +175,14 @@ body{
 <p>Taluka Warora | District Chandrapur</p>
 </div>
 </div>
-</div>
 </header>
 
 <nav class="gov-navbar">
 <ul class="nav-menu">
 <li><a href="index.html">Home</a></li>
-<li><a href="index.html#leadership">Leadership</a></li>
 <li><a href="schemes.html">Schemes</a></li>
 <li><a href="events.html">Events</a></li>
-<li><a href="gallery.html">Gallery</a></li>
+<li><a href="notices.html" class="active">Notices</a></li>
 <li><a href="contact.html">Contact</a></li>
 </ul>
 </nav>
@@ -229,24 +196,28 @@ body{
 </section>
 
 <footer class="gov-footer">
-© <span id="year"></span> Gram Panchayat Wandhali |
-Developed by <strong>Ramko Associates</strong>
+© <span id="year"></span> Gram Panchayat Wandhali
 </footer>
 
 <script type="module">
+
 import { db } from "./js/firebase.js";
-import { collection, getDocs, query, orderBy }
+import { collection, getDocs, query, where, orderBy }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 async function loadNotices(){
 
 const container=document.getElementById("noticeContainer");
-container.innerHTML="<p>Loading notices...</p>";
+container.innerHTML="Loading...";
 
 try{
 
 const snap=await getDocs(
-query(collection(db,"notices"),orderBy("createdAt","desc"))
+query(
+  collection(db,"notices"),
+  where("villageId","==","wandhali"),   // ✅ IMPORTANT
+  orderBy("createdAt","desc")
+)
 );
 
 if(snap.empty){
@@ -257,68 +228,53 @@ return;
 container.innerHTML="";
 
 snap.forEach(doc=>{
-  const d = doc.data();
+const d=doc.data();
 
-  let formattedDate = "";
-  let isNew = false;
+let date="";
+let isNew=false;
 
-  if(d.createdAt?.toDate){
-    const dateObj = d.createdAt.toDate();
+if(d.createdAt?.toDate){
+const dt=d.createdAt.toDate();
 
-    // Format dd/mm/yyyy
-    formattedDate =
-      dateObj.getDate().toString().padStart(2,'0')+"/"+
-      (dateObj.getMonth()+1).toString().padStart(2,'0')+"/"+
-      dateObj.getFullYear();
+date=dt.getDate().toString().padStart(2,'0')+"/"+
+(dt.getMonth()+1).toString().padStart(2,'0')+"/"+
+dt.getFullYear();
 
-    // Check if within 7 days
-    const now = new Date();
-    const diffTime = now - dateObj;
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+const diff=(new Date()-dt)/(1000*60*60*24);
+if(diff<=7) isNew=true;
+}
 
-    if(diffDays <= 7){
-      isNew = true;
-    }
-  }
-container.innerHTML += `
-  <div class="notice-card">
-    <div class="notice-left">
+container.innerHTML+=`
+<div class="notice-card">
 
-      <div class="notice-title">
-        ${d.title || "Untitled Notice"}
-        ${isNew ? '<span class="new-badge">NEW</span>' : ''}
-      </div>
+<div>
+<div class="notice-title">
+${d.noticeNumber || ""} ${d.title || ""} 
+${isNew ? '<span class="new-badge">NEW</span>' : ""}
+</div>
 
-      <div class="notice-date">${formattedDate}</div>
+<div class="notice-date">${date}</div>
 
-      ${d.description ? `
-        <div style="
-          margin-top:8px;
-          font-size:14px;
-          color:#444;
-          line-height:1.5;
-        ">
-          ${d.description}
-        </div>
-      ` : ""}
+${d.description ? `<div class="notice-desc">${d.description}</div>` : ""}
 
-    </div>
+</div>
 
-    ${d.fileUrl ? 
-      `<a href="${d.fileUrl}" target="_blank" class="notice-link">Download</a>` 
-      : ""}
-  </div>
+${d.fileUrl ? `<a href="${d.fileUrl}" target="_blank" class="notice-link">View</a>` : ""}
+
+</div>
 `;
- });
-}catch(error){
-console.error(error);
-container.innerHTML="<p>Failed to load notices.</p>";
+});
+
+}catch(e){
+console.error(e);
+container.innerHTML="Error loading notices";
 }
 }
 
 loadNotices();
 
 document.getElementById("year").textContent=new Date().getFullYear();
+
 </script>
 
 </body>
