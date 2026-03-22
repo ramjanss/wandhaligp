@@ -76,7 +76,7 @@
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, getDocs, updateDoc, doc, query, orderBy }
+import { collection, getDocs, updateDoc, doc, query, orderBy, where }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const container = document.getElementById("complaintsContainer");
@@ -87,7 +87,13 @@ async function loadComplaints(){
 
   container.innerHTML = "Loading...";
 
-  const q = query(collection(db,"complaints"), orderBy("createdAt","desc"));
+const VILLAGE_ID = "wandhali";
+
+const q = query(
+  collection(db,"complaints"),
+  where("villageId","==", VILLAGE_ID),
+  orderBy("createdAt","desc")
+);
   const snapshot = await getDocs(q);
 
   allComplaints = [];
@@ -102,7 +108,61 @@ async function loadComplaints(){
   renderComplaints();
 }
 
-function renderComplaints(){
+window.filterComplaints = function(status){
+
+  if(status === "all"){
+    renderComplaints();
+    return;
+  }
+
+  const filtered = allComplaints.filter(c => c.status === status);
+
+  container.innerHTML = "";
+
+  if(filtered.length === 0){
+    container.innerHTML = "<p>No complaints found.</p>";
+    return;
+  }
+
+  filtered.forEach(c => renderSingleComplaint(c));
+};
+
+allComplaints.forEach(renderSingleComplaint);
+  
+document.getElementById("searchInput").addEventListener("input", function(){
+
+  const value = this.value.toLowerCase();
+
+  const filtered = allComplaints.filter(c =>
+    c.trackingId?.toLowerCase().includes(value) ||
+    c.name?.toLowerCase().includes(value)
+  );
+
+  container.innerHTML = "";
+
+  filtered.forEach(c => renderSingleComplaint(c));
+});
+
+document.getElementById("exportBtn").onclick = function(){
+
+  const data = allComplaints.map(c => ({
+    TrackingID: c.trackingId,
+    Name: c.name,
+    Phone: c.phone,
+    Status: c.status,
+    Message: c.message,
+    Date: c.createdAt?.toDate()?.toLocaleString()
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Complaints");
+
+  XLSX.writeFile(workbook, "Complaints.xlsx");
+};
+  
+  function renderComplaints(){
 
   container.innerHTML = "";
 
@@ -226,6 +286,16 @@ function renderComplaints(){
 
 loadComplaints();
 
+if(updatedStatus === "Resolved"){
+  const msg = `Your complaint (${c.trackingId}) has been resolved.
+
+Thank you,
+Gram Panchayat Wandhali`;
+
+  const url = `https://wa.me/91${c.phone}?text=${encodeURIComponent(msg)}`;
+
+  window.open(url);
+}
 </script>
 
 </body>
