@@ -2,39 +2,98 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin - Complaints</title>
+<title>Admin Panel - Complaints</title>
 
 <style>
-body { margin:0; font-family:Arial; display:flex; }
+body{
+  margin:0;
+  font-family:system-ui;
+  display:flex;
+  background:#f3f4f6;
+}
 
+/* SIDEBAR */
 .sidebar{
-  width:220px;
+  width:240px;
   background:#1e3a8a;
   color:white;
   height:100vh;
   padding:20px;
+  position:sticky;
+  top:0;
 }
+
+.sidebar h2{ margin-bottom:20px; }
 
 .sidebar a{
   display:block;
   color:white;
-  margin:10px 0;
+  padding:10px;
+  margin:6px 0;
+  border-radius:6px;
   text-decoration:none;
 }
 
+.sidebar a.active,
+.sidebar a:hover{
+  background:#3b82f6;
+}
+
+/* MAIN */
 .content{
   flex:1;
   padding:30px;
-  background:#f3f4f6;
 }
 
-.card{
-  background:white;
+/* STATS */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:15px;
+  margin-bottom:20px;
+}
+
+.stat{
   padding:15px;
-  border-radius:10px;
+  border-radius:12px;
+  color:white;
+  font-weight:600;
+}
+
+.blue{ background:#2563eb; }
+.orange{ background:#f59e0b; }
+.green{ background:#16a34a; }
+.red{ background:#dc2626; }
+
+/* FILTER */
+.filters{
   margin-bottom:15px;
 }
 
+.filters button{
+  padding:8px 14px;
+  margin-right:5px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  background:#e5e7eb;
+}
+
+.filters button.active{
+  background:#1e3a8a;
+  color:white;
+}
+
+/* CARD */
+.card{
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  margin-bottom:15px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* INPUT */
 select, textarea{
   width:100%;
   padding:8px;
@@ -43,33 +102,14 @@ select, textarea{
 }
 
 button{
-  padding:6px 12px;
   border:none;
+  padding:6px 12px;
   border-radius:6px;
   cursor:pointer;
 }
 
-.save-btn{ background:#1e3a8a; color:white; }
-.wa-btn{ background:#25D366; color:white; }
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin-bottom:20px;
-}
-
-.stat-box{
-  padding:15px;
-  border-radius:10px;
-  color:white;
-}
-
-.blue{ background:#2563eb; }
-.orange{ background:#f59e0b; }
-.green{ background:#16a34a; }
-.red{ background:#dc2626; }
-
+.save{ background:#1e3a8a; color:white; }
+.wa{ background:#25D366; color:white; }
 </style>
 </head>
 
@@ -82,21 +122,31 @@ button{
   <a href="#">Notices</a>
   <a href="#">Gallery</a>
   <a href="#">Events</a>
-  <a href="#" style="background:#3b82f6;padding:5px;">Complaints</a>
+  <a class="active">Complaints</a>
 </div>
 
 <div class="content">
 
 <h1>📩 Manage Complaints</h1>
 
+<!-- STATS -->
 <div class="stats">
-  <div class="stat-box blue" id="totalBox">Total: 0</div>
-  <div class="stat-box orange" id="pendingBox">Pending: 0</div>
-  <div class="stat-box green" id="resolvedBox">Resolved: 0</div>
-  <div class="stat-box red" id="rejectedBox">Rejected: 0</div>
+  <div class="stat blue" id="total">Total: 0</div>
+  <div class="stat orange" id="pending">Pending: 0</div>
+  <div class="stat green" id="resolved">Resolved: 0</div>
+  <div class="stat red" id="rejected">Rejected: 0</div>
 </div>
 
-<input type="text" id="search" placeholder="Search..." style="padding:8px;width:300px;margin-bottom:15px;">
+<!-- SEARCH -->
+<input type="text" id="search" placeholder="Search..." style="padding:8px;width:300px;margin-bottom:10px;">
+
+<!-- FILTER -->
+<div class="filters">
+  <button onclick="setFilter('All')" class="active">All</button>
+  <button onclick="setFilter('Pending')">Pending</button>
+  <button onclick="setFilter('Resolved')">Resolved</button>
+  <button onclick="setFilter('Rejected')">Rejected</button>
+</div>
 
 <div id="list"></div>
 
@@ -109,8 +159,11 @@ import { collection, getDocs, updateDoc, doc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const VILLAGE_ID = "wandhali";
-let complaints = [];
 
+let complaints = [];
+let currentFilter = "All";
+
+/* LOAD DATA */
 async function load(){
 
   const snap = await getDocs(collection(db,"complaints"));
@@ -126,12 +179,21 @@ async function load(){
   render();
 }
 
+/* FILTER */
+window.setFilter = function(filter){
+  currentFilter = filter;
+  document.querySelectorAll(".filters button").forEach(btn=>btn.classList.remove("active"));
+  event.target.classList.add("active");
+  render();
+}
+
+/* RENDER */
 function render(){
 
   const list = document.getElementById("list");
   const search = document.getElementById("search").value.toLowerCase();
 
-  list.innerHTML = "";
+  list.innerHTML="";
 
   let total=0, pending=0, resolved=0, rejected=0;
 
@@ -141,6 +203,8 @@ function render(){
       !c.trackingId.toLowerCase().includes(search) &&
       !c.name.toLowerCase().includes(search)
     ) return;
+
+    if(currentFilter !== "All" && c.status !== currentFilter) return;
 
     total++;
 
@@ -155,11 +219,11 @@ Reply: ${c.adminReply || ""}`;
     const waLink = `https://wa.me/91${c.phone}?text=${encodeURIComponent(waText)}`;
 
     const div = document.createElement("div");
-    div.className = "card";
+    div.className="card";
 
     div.innerHTML = `
-      <strong>${c.trackingId}</strong>
-      <span style="float:right">${c.status || "Submitted"}</span>
+      <b>${c.trackingId}</b>
+      <span style="float:right">${c.status}</span>
 
       <p><b>${c.name}</b> (${c.phone})</p>
       <p>${c.message}</p>
@@ -172,32 +236,33 @@ Reply: ${c.adminReply || ""}`;
         <option ${c.status==="Rejected"?"selected":""}>Rejected</option>
       </select>
 
-      <label>Admin Reply</label>
+      <label>Reply</label>
       <textarea id="reply-${c.id}">${c.adminReply || ""}</textarea>
 
-      <button class="save-btn" onclick="save('${c.id}')">Save</button>
+      <button class="save" onclick="save('${c.id}')">Save</button>
 
       <a href="${waLink}" target="_blank">
-        <button class="wa-btn">WhatsApp</button>
+        <button class="wa">WhatsApp</button>
       </a>
     `;
 
     list.appendChild(div);
   });
 
-  document.getElementById("totalBox").innerText = "Total: " + total;
-  document.getElementById("pendingBox").innerText = "Pending: " + pending;
-  document.getElementById("resolvedBox").innerText = "Resolved: " + resolved;
-  document.getElementById("rejectedBox").innerText = "Rejected: " + rejected;
+  document.getElementById("total").innerText = "Total: " + complaints.length;
+  document.getElementById("pending").innerText = "Pending: " + pending;
+  document.getElementById("resolved").innerText = "Resolved: " + resolved;
+  document.getElementById("rejected").innerText = "Rejected: " + rejected;
 }
 
+/* SAVE */
 window.save = async function(id){
 
   const status = document.getElementById("status-"+id).value;
   const reply = document.getElementById("reply-"+id).value;
 
   await updateDoc(doc(db,"complaints",id),{
-    status:status,
+    status,
     adminReply:reply,
     updatedAt:new Date()
   });
