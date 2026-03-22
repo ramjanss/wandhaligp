@@ -1888,11 +1888,10 @@ async function loadSchemes(){
 
       const lang = currentLang;
 
-<h4>${d.title?.[lang] || d.title}</h4>
-<p>${d.description?.[lang] || d.description}</p>
+<h4>${d.title?.[currentLang] || d.title}</h4>
+<p>${d.description?.[currentLang] || d.description}</p>
 
       <div class="scheme-buttons">
-
         <button class="scheme-btn btn-details"
         onclick='openSchemeModal(${JSON.stringify(d)})'>
         View Details
