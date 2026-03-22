@@ -150,7 +150,18 @@ button:hover{opacity:0.9;}
 
 <input type="text" id="trackingIdInput" placeholder="Enter Tracking ID">
 <button id="trackBtn">Track</button>
-<div style="text-align:center;margin-top:15px;">
+<div id="result"></div>
+<p><strong>Admin Reply:</strong></p>
+<div style="
+  background:#ecfdf5;
+  padding:10px;
+  border-radius:8px;
+  margin-top:5px;
+">
+  ${data.adminReply || "No reply yet"}
+</div>
+  
+  <div style="text-align:center;margin-top:15px;">
   <a href="index.html" style="
     display:inline-block;
     padding:10px 18px;
@@ -162,7 +173,7 @@ button:hover{opacity:0.9;}
     Go to Homepage
   </a>
 </div>
-<div id="result"></div>
+
 
 </div>
 
