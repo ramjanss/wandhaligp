@@ -99,6 +99,10 @@ body{
 .resolved{ background:#16a34a; }
 .rejected{ background:#dc2626; }
 
+.priority-high{ background:#dc2626; }
+.priority-medium{ background:#f59e0b; }
+.priority-low{ background:#16a34a; }
+
 textarea, select{
   width:100%;
   margin:5px 0 10px;
@@ -114,6 +118,7 @@ button{
 
 .save{ background:#1e3a8a; color:white; }
 .wa{ background:#25D366; color:white; }
+.export{ background:#16a34a; color:white; margin-bottom:10px; }
 </style>
 </head>
 
@@ -143,6 +148,8 @@ button{
   <div class="stat red" id="rejected">Rejected: 0</div>
 </div>
 
+<button class="export" onclick="exportExcel()">Export to Excel</button>
+
 <input type="text" id="search" placeholder="Search..." style="padding:8px;width:300px;margin-bottom:10px;">
 
 <div class="filters">
@@ -167,7 +174,7 @@ const VILLAGE_ID = "wandhali";
 let complaints = [];
 let currentFilter = "All";
 
-/* REAL-TIME LOAD */
+/* LOAD REALTIME */
 function load(){
 
   const q = query(
@@ -207,7 +214,7 @@ function render(){
 
   list.innerHTML="";
 
-  let total=0, pending=0, resolved=0, rejected=0;
+  let pending=0, resolved=0, rejected=0;
 
   complaints.forEach(c=>{
 
@@ -218,8 +225,6 @@ function render(){
 
     if(currentFilter !== "All" && c.status !== currentFilter) return;
 
-    total++;
-
     if(c.status==="Pending") pending++;
     else if(c.status==="Resolved") resolved++;
     else if(c.status==="Rejected") rejected++;
@@ -228,6 +233,19 @@ function render(){
       c.status==="Resolved" ? "resolved" :
       c.status==="Rejected" ? "rejected" :
       "pending";
+
+    const priorityClass =
+      c.priority==="High" ? "priority-high" :
+      c.priority==="Low" ? "priority-low" :
+      "priority-medium";
+
+    const historyHTML = (c.history || []).map(h=>{
+      const time = h.time?.seconds 
+        ? new Date(h.time.seconds*1000)
+        : new Date(h.time);
+
+      return `${time.toLocaleString()} - ${h.status}`;
+    }).join("<br>");
 
     const waText = `Complaint ID: ${c.trackingId}
 Status: ${c.status}
@@ -245,11 +263,22 @@ Reply: ${c.adminReply || ""}`;
       <p><b>${c.name}</b> (${c.phone})</p>
       <p>${c.message}</p>
 
+      <span class="badge ${priorityClass}">
+        ${c.priority || "Medium"}
+      </span>
+
       <label>Status</label>
       <select id="status-${c.id}">
         <option ${c.status==="Pending"?"selected":""}>Pending</option>
         <option ${c.status==="Resolved"?"selected":""}>Resolved</option>
         <option ${c.status==="Rejected"?"selected":""}>Rejected</option>
+      </select>
+
+      <label>Priority</label>
+      <select id="priority-${c.id}">
+        <option ${c.priority==="High"?"selected":""}>High</option>
+        <option ${c.priority==="Medium"?"selected":""}>Medium</option>
+        <option ${c.priority==="Low"?"selected":""}>Low</option>
       </select>
 
       <label>Admin Reply</label>
@@ -260,6 +289,11 @@ Reply: ${c.adminReply || ""}`;
       <a href="${waLink}" target="_blank">
         <button class="wa">WhatsApp</button>
       </a>
+
+      <div style="margin-top:10px;font-size:12px;color:#555;">
+        <b>History:</b><br>
+        ${historyHTML}
+      </div>
     `;
 
     list.appendChild(div);
@@ -276,17 +310,49 @@ window.save = async function(id){
 
   const status = document.getElementById("status-"+id).value;
   const reply = document.getElementById("reply-"+id).value;
+  const priority = document.getElementById("priority-"+id).value;
+
+  const complaint = complaints.find(c => c.id === id);
+
+  const history = [
+    ...(complaint.history || []),
+    { status, time:new Date() }
+  ];
 
   await updateDoc(doc(db,"complaints",id),{
     status,
-    adminReply:reply,
+    adminReply: reply,
+    priority: priority,
+    history,
     updatedAt:new Date()
   });
 
-  alert("Updated ✅");
+  const waText = `Complaint ID: ${complaint.trackingId}
+Status: ${status}
+Reply: ${reply}`;
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.open(`https://wa.me/91${complaint.phone}?text=${encodeURIComponent(waText)}`);
+
+  alert("Updated ✅");
 }
+
+/* EXPORT */
+window.exportExcel = function(){
+
+  let csv = "Tracking ID,Name,Phone,Status,Priority\n";
+
+  complaints.forEach(c=>{
+    csv += `${c.trackingId},${c.name},${c.phone},${c.status},${c.priority || "Medium"}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "complaints.csv";
+  a.click();
+};
 
 document.getElementById("search").addEventListener("input",render);
 
