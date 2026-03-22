@@ -1384,42 +1384,56 @@ setInterval(slideHero, 4000);
 
 /* DASHBOARD */
 
- async function loadDashboard(){
+import { onSnapshot, query, where }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const complaintsSnap = await getDocs(collection(db,"complaints"));
-  const noticesSnap = await getDocs(collection(db,"notices"));
+function loadDashboard(){
 
-  let resolved = 0;
-  let pending = 0;
-  let rejected = 0;
+  const complaintsQuery = query(
+    collection(db,"complaints"),
+    where("villageId","==","wandhali")
+  );
 
-  complaintsSnap.forEach(doc => {
+  const noticesQuery = query(
+    collection(db,"notices"),
+    where("villageId","==","wandhali")
+  );
 
-    const status = doc.data().status?.toLowerCase().trim();
+  // 🔥 REAL-TIME COMPLAINTS
+  onSnapshot(complaintsQuery, (snap)=>{
 
-    if(status === "resolved"){
-      resolved++;
-    }
-    else if(status === "rejected"){
-      rejected++;
-    }
-    else{
-      pending++;
-    }
+    let resolved = 0;
+    let pending = 0;
+    let rejected = 0;
+
+    snap.forEach(doc=>{
+
+      const status = doc.data().status?.toLowerCase().trim();
+
+      if(status === "resolved"){
+        resolved++;
+      }
+      else if(status === "rejected"){
+        rejected++;
+      }
+      else{
+        pending++;
+      }
+
+    });
+
+    document.getElementById("totalComplaints").textContent = snap.size;
+    document.getElementById("resolvedComplaints").textContent = resolved;
+    document.getElementById("pendingComplaints").textContent = pending;
+    document.getElementById("rejectedComplaints").textContent = rejected;
 
   });
 
-  document.getElementById("totalComplaints").textContent =
-    complaintsSnap.size;
+  // 🔥 REAL-TIME NOTICES
+  onSnapshot(noticesQuery, (snap)=>{
+    document.getElementById("totalNotices").textContent = snap.size;
+  });
 
-  document.getElementById("resolvedComplaints").textContent =
-    resolved;
-
-  document.getElementById("pendingComplaints").textContent =
-    pending;
-
-  document.getElementById("totalNotices").textContent = noticesSnap.size;
- document.getElementById("rejectedComplaints").textContent = rejected;  
 }
 
 loadDashboard();
