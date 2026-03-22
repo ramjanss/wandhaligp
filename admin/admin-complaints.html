@@ -1,269 +1,213 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Admin - Complaints</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="admin.css">
 
 <style>
-body{
-  font-family: 'Poppins', sans-serif;
+body { margin:0; font-family:Arial; display:flex; }
+
+.sidebar{
+  width:220px;
+  background:#1e3a8a;
+  color:white;
+  height:100vh;
+  padding:20px;
 }
 
-/* DASHBOARD */
+.sidebar a{
+  display:block;
+  color:white;
+  margin:10px 0;
+  text-decoration:none;
+}
+
+.content{
+  flex:1;
+  padding:30px;
+  background:#f3f4f6;
+}
+
+.card{
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+
+select, textarea{
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  margin-bottom:10px;
+}
+
+button{
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.save-btn{ background:#1e3a8a; color:white; }
+.wa-btn{ background:#25D366; color:white; }
+
 .stats{
-  display:flex;
-  gap:20px;
-  flex-wrap:wrap;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
   margin-bottom:20px;
 }
 
 .stat-box{
-  flex:1;
-  min-width:180px;
-  padding:20px;
-  border-radius:12px;
+  padding:15px;
+  border-radius:10px;
   color:white;
-  font-weight:600;
 }
 
-.total{background:#2563eb;}
-.pending{background:#f59e0b;}
-.resolved{background:#16a34a;}
-.rejected{background:#dc2626;}
+.blue{ background:#2563eb; }
+.orange{ background:#f59e0b; }
+.green{ background:#16a34a; }
+.red{ background:#dc2626; }
 
-/* CARD */
-.card{
-  background:white;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
-}
-
-/* PRIORITY COLORS */
-.high{border-left:6px solid #dc2626;}
-.medium{border-left:6px solid #f59e0b;}
-.low{border-left:6px solid #16a34a;}
-
-button{
-  cursor:pointer;
-  padding:8px 14px;
-  border:none;
-  border-radius:6px;
-  margin-right:5px;
-}
-
-.save-btn{background:#1e3a8a;color:white;}
-.wa-btn{background:#25D366;color:white;}
-
-textarea, select{
-  width:100%;
-  padding:6px;
-  margin-top:5px;
-  margin-bottom:10px;
-}
 </style>
-
 </head>
 
 <body>
 
-<div class="admin-container">
-
-<aside class="sidebar">
-<h2>Admin Panel</h2>
-<a href="./admin-dashboard.html">Dashboard</a>
-<a href="./admin-members.html">Members</a>
-<a href="./admin-notices.html">Notices</a>
-<a href="./admin-gallery.html">Gallery</a>
-<a href="./admin-events.html">Events</a>
-<a href="./admin-complaints.html" class="active">Complaints</a>
-<button id="logoutBtn">Logout</button>
-</aside>
-
-<main class="content">
-
-<h1>📨 Manage Complaints</h1>
-
-<!-- DASHBOARD -->
-
-<div class="stats">
-  <div class="stat-box total">Total: <span id="total">0</span></div>
-  <div class="stat-box pending">Pending: <span id="pending">0</span></div>
-  <div class="stat-box resolved">Resolved: <span id="resolved">0</span></div>
-  <div class="stat-box rejected">Rejected: <span id="rejected">0</span></div>
+<div class="sidebar">
+  <h2>Admin Panel</h2>
+  <a href="#">Dashboard</a>
+  <a href="#">Members</a>
+  <a href="#">Notices</a>
+  <a href="#">Gallery</a>
+  <a href="#">Events</a>
+  <a href="#" style="background:#3b82f6;padding:5px;">Complaints</a>
 </div>
 
-<!-- SEARCH -->
+<div class="content">
 
-<input id="searchInput" placeholder="Search..." style="padding:8px;width:250px;margin-bottom:20px;">
+<h1>📩 Manage Complaints</h1>
 
-<div id="complaintsContainer"></div>
+<div class="stats">
+  <div class="stat-box blue" id="totalBox">Total: 0</div>
+  <div class="stat-box orange" id="pendingBox">Pending: 0</div>
+  <div class="stat-box green" id="resolvedBox">Resolved: 0</div>
+  <div class="stat-box red" id="rejectedBox">Rejected: 0</div>
+</div>
 
-</main>
+<input type="text" id="search" placeholder="Search..." style="padding:8px;width:300px;margin-bottom:15px;">
+
+<div id="list"></div>
+
 </div>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, getDocs, updateDoc, doc, query, where, orderBy }
+import { collection, getDocs, updateDoc, doc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const container = document.getElementById("complaintsContainer");
 const VILLAGE_ID = "wandhali";
+let complaints = [];
 
-let allComplaints = [];
-
-/* LOAD DATA */
 async function load(){
 
-  container.innerHTML = "Loading...";
+  const snap = await getDocs(collection(db,"complaints"));
+  complaints = [];
 
-  const q = query(
-    collection(db,"complaints"),
-    where("villageId","==", VILLAGE_ID),
-    orderBy("createdAt","desc")
-  );
-
-  const snap = await getDocs(q);
-
-  allComplaints = [];
-
-  snap.forEach(docSnap=>{
-    allComplaints.push({
-      id: docSnap.id,
-      ...docSnap.data()
-    });
+  snap.forEach(d=>{
+    const data = d.data();
+    if(data.villageId === VILLAGE_ID){
+      complaints.push({ id:d.id, ...data });
+    }
   });
 
-  updateStats();
-  render(allComplaints);
+  render();
 }
 
-/* STATS */
-function updateStats(){
+function render(){
 
-  document.getElementById("total").textContent = allComplaints.length;
+  const list = document.getElementById("list");
+  const search = document.getElementById("search").value.toLowerCase();
 
-  document.getElementById("pending").textContent =
-    allComplaints.filter(c=>c.status==="Pending").length;
+  list.innerHTML = "";
 
-  document.getElementById("resolved").textContent =
-    allComplaints.filter(c=>c.status==="Resolved").length;
+  let total=0, pending=0, resolved=0, rejected=0;
 
-  document.getElementById("rejected").textContent =
-    allComplaints.filter(c=>c.status==="Rejected").length;
+  complaints.forEach(c=>{
+
+    if(
+      !c.trackingId.toLowerCase().includes(search) &&
+      !c.name.toLowerCase().includes(search)
+    ) return;
+
+    total++;
+
+    if(c.status==="Pending") pending++;
+    else if(c.status==="Resolved") resolved++;
+    else if(c.status==="Rejected") rejected++;
+
+    const waText = `Complaint ID: ${c.trackingId}
+Status: ${c.status}
+Reply: ${c.adminReply || ""}`;
+
+    const waLink = `https://wa.me/91${c.phone}?text=${encodeURIComponent(waText)}`;
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <strong>${c.trackingId}</strong>
+      <span style="float:right">${c.status || "Submitted"}</span>
+
+      <p><b>${c.name}</b> (${c.phone})</p>
+      <p>${c.message}</p>
+
+      <label>Status</label>
+      <select id="status-${c.id}">
+        <option ${c.status==="Submitted"?"selected":""}>Submitted</option>
+        <option ${c.status==="Pending"?"selected":""}>Pending</option>
+        <option ${c.status==="Resolved"?"selected":""}>Resolved</option>
+        <option ${c.status==="Rejected"?"selected":""}>Rejected</option>
+      </select>
+
+      <label>Admin Reply</label>
+      <textarea id="reply-${c.id}">${c.adminReply || ""}</textarea>
+
+      <button class="save-btn" onclick="save('${c.id}')">Save</button>
+
+      <a href="${waLink}" target="_blank">
+        <button class="wa-btn">WhatsApp</button>
+      </a>
+    `;
+
+    list.appendChild(div);
+  });
+
+  document.getElementById("totalBox").innerText = "Total: " + total;
+  document.getElementById("pendingBox").innerText = "Pending: " + pending;
+  document.getElementById("resolvedBox").innerText = "Resolved: " + resolved;
+  document.getElementById("rejectedBox").innerText = "Rejected: " + rejected;
 }
 
-/* RENDER */
-function render(data){
-
-  container.innerHTML = "";
-
-  if(data.length === 0){
-    container.innerHTML = "<p>No complaints found.</p>";
-    return;
-  }
-
-  data.forEach(c=>{
-
-    const priorityClass = c.priority || "low";
-
-    const phone = c.phone;
-
-    const whatsappMsg =
-      "Complaint Update\n\n" +
-      "Tracking ID: " + c.trackingId + "\n" +
-      "Status: " + c.status + "\n\n" +
-      "Admin Reply:\n" +
-      (c.adminReply || "No reply yet") +
-      "\n\n- Gram Panchayat Wandhali";
-
-    const waLink =
-      "https://wa.me/91" + phone +
-      "?text=" + encodeURIComponent(whatsappMsg);
-
-    const card = document.createElement("div");
-    card.className = "card " + priorityClass;
-
-  card.innerHTML =
-  "<strong>" + c.trackingId + "</strong>" +
-  "<span style='float:right'>" + (c.status || "Submitted") + "</span>" +
-
-  "<p><b>" + c.name + "</b> (" + c.phone + ")</p>" +
-
-  "<p>" + c.message + "</p>" +
-
-  "<label>Status</label>" +
-  "<select id='status-" + c.id + "'>" +
-    "<option>Submitted</option>" +
-    "<option>Pending</option>" +
-    "<option>Resolved</option>" +
-    "<option>Rejected</option>" +
-  "</select>" +
-
-  "<label>Priority</label>" +
-  "<select id='priority-" + c.id + "'>" +
-    "<option value='low'>Low</option>" +
-    "<option value='medium'>Medium</option>" +
-    "<option value='high'>High</option>" +
-  "</select>" +
-
-  "<label>Admin Reply</label>" +
-  "<textarea id='reply-" + c.id + "'>" +
-    (c.adminReply || "") +
-  "</textarea>" +
-
-  "<button class='save-btn' onclick=\"save('" + c.id + "')\">Save</button>" +
-
-  "<a href='" + waLink + "' target='_blank'>" +
-    "<button class='wa-btn'>WhatsApp</button>" +
-  "</a>";
-container.appendChild(card);
-
-document.getElementById("status-" + c.id).value = c.status || "Submitted";
-document.getElementById("priority-" + c.id).value = c.priority || "low";
-```
-
-});
-}
-
-/* SAVE */
 window.save = async function(id){
 
-const status = document.getElementById("status-"+id).value;
-const priority = document.getElementById("priority-"+id).value;
-const reply = document.getElementById("reply-"+id).value;
+  const status = document.getElementById("status-"+id).value;
+  const reply = document.getElementById("reply-"+id).value;
 
-await updateDoc(doc(db,"complaints",id),{
-status: status,
-priority: priority,
-adminReply: reply,
-updatedAt: new Date()
-});
+  await updateDoc(doc(db,"complaints",id),{
+    status:status,
+    adminReply:reply,
+    updatedAt:new Date()
+  });
 
-alert("Updated Successfully");
-load();
-};
+  alert("Updated ✅");
+  load();
+}
 
-/* SEARCH */
-document.getElementById("searchInput").addEventListener("input", function(){
+document.getElementById("search").addEventListener("input",render);
 
-const val = this.value.toLowerCase();
-
-const filtered = allComplaints.filter(c =>
-(c.trackingId || "").toLowerCase().includes(val) ||
-(c.name || "").toLowerCase().includes(val)
-);
-
-render(filtered);
-});
-
-/* INIT */
 load();
 
 </script>
