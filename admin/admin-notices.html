@@ -12,32 +12,30 @@
 
   <aside class="sidebar">
     <h2>Admin Panel</h2>
-<a href="./admin-dashboard.html">Dashboard</a>
-<a href="./admin-members.html">Members</a>
-<a href="./admin-notices.html" class="active">Notices</a>
-<a href="./admin-gallery.html">Gallery</a>
-<a href="./admin-events.html">Events</a>
-<a href="./admin-complaints.html">Complaints</a>    
+    <a href="./admin-dashboard.html">Dashboard</a>
+    <a href="./admin-members.html">Members</a>
+    <a href="./admin-notices.html" class="active">Notices</a>
+    <a href="./admin-gallery.html">Gallery</a>
+    <a href="./admin-events.html">Events</a>
+    <a href="./admin-complaints.html">Complaints</a>    
     <button id="logoutBtn">Logout</button>
   </aside>
 
   <main class="content">
     <h1>📢 Manage Notices</h1>
 
+    <!-- ADD / EDIT FORM -->
     <div class="card" style="margin-bottom:30px;">
-      <h3>Add Notice</h3>
+      <h3 id="formTitle">Add Notice</h3>
 
-      <input type="text" id="noticeTitle" placeholder="Notice Title" style="width:100%;padding:10px;margin-bottom:10px;">
+      <input type="text" id="noticeTitle" placeholder="Notice Title">
       
-      <textarea id="noticeDesc" placeholder="Description" style="width:100%;padding:10px;height:80px;margin-bottom:10px;"></textarea>
+      <textarea id="noticeDesc" placeholder="Description"></textarea>
       
       <input type="file" id="noticeFile" accept="application/pdf">
       <br><br>
 
-      <button id="addNoticeBtn" style="padding:10px 18px;background:#1e3a8a;color:white;border:none;border-radius:6px;">
-        Upload Notice
-      </button>
-
+      <button id="addNoticeBtn">Upload Notice</button>
       <p id="noticeMsg"></p>
     </div>
 
@@ -53,14 +51,20 @@
 <script type="module">
 
 import { db, storage } from "../js/firebase.js";
-import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query }
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { ref, uploadBytes, getDownloadURL, deleteObject }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+const VILLAGE_ID = "wandhali";
+
 const noticeMsg = document.getElementById("noticeMsg");
 const noticeList = document.getElementById("noticeList");
+
+let editId = null;
+
+/* ================= ADD / UPDATE ================= */
 
 document.getElementById("addNoticeBtn").onclick = async () => {
 
@@ -68,27 +72,53 @@ document.getElementById("addNoticeBtn").onclick = async () => {
   const description = document.getElementById("noticeDesc").value.trim();
   const file = document.getElementById("noticeFile").files[0];
 
-  if(!title || !file){
-    alert("Title and PDF required");
+  if(!title){
+    alert("Title required");
     return;
   }
 
   try {
 
-    const storageRef = ref(storage,"notices/"+Date.now()+"_"+file.name);
+    noticeMsg.textContent = "Processing...";
 
-    await uploadBytes(storageRef,file);
-    const fileUrl = await getDownloadURL(storageRef);
+    let fileUrl = "";
+    let storagePath = "";
 
-    await addDoc(collection(db,"notices"),{
-      title,
-      description,   // ✅ now saving correctly
-      fileUrl,
-      storagePath:storageRef.fullPath,
-      createdAt:new Date()
-    });
+    if(file){
+      const storageRef = ref(storage,"notices/"+Date.now()+"_"+file.name);
+      await uploadBytes(storageRef,file);
 
-    alert("Notice uploaded successfully ✅");
+      fileUrl = await getDownloadURL(storageRef);
+      storagePath = storageRef.fullPath;
+    }
+
+    if(editId){
+      await updateDoc(doc(db,"notices",editId),{
+        title,
+        description,
+        ...(fileUrl && { fileUrl }),
+        ...(storagePath && { storagePath }),
+        updatedAt:new Date()
+      });
+
+      noticeMsg.textContent = "Notice updated ✅";
+      editId = null;
+      document.getElementById("formTitle").textContent = "Add Notice";
+
+    }else{
+
+      await addDoc(collection(db,"notices"),{
+        title,
+        description,
+        fileUrl,
+        storagePath,
+        villageId: VILLAGE_ID,   // ✅ IMPORTANT
+        createdAt:new Date(),
+        updatedAt:new Date()
+      });
+
+      noticeMsg.textContent = "Notice uploaded ✅";
+    }
 
     document.getElementById("noticeTitle").value="";
     document.getElementById("noticeDesc").value="";
@@ -96,17 +126,25 @@ document.getElementById("addNoticeBtn").onclick = async () => {
 
     loadNotices();
 
-  } catch(error) {
+  } catch(error){
     console.error(error);
-    noticeMsg.textContent = "Upload failed ❌";
+    noticeMsg.textContent = "Failed ❌";
   }
 };
+
+
+/* ================= LOAD ================= */
 
 async function loadNotices(){
 
   noticeList.innerHTML="Loading...";
 
-  const q = query(collection(db,"notices"),orderBy("createdAt","desc"));
+  const q = query(
+    collection(db,"notices"),
+    where("villageId","==",VILLAGE_ID),   // ✅ FILTER
+    orderBy("createdAt","desc")
+  );
+
   const snapshot = await getDocs(q);
 
   if(snapshot.empty){
@@ -126,24 +164,31 @@ async function loadNotices(){
 
     card.innerHTML=`
       <strong>${data.title}</strong><br>
-      ${data.fileUrl ? `<a href="${data.fileUrl}" target="_blank">📄 Download</a>` : ""}
-      <br><br>
-      <button style="
-        background:#ef4444;
-        color:white;
-        border:none;
-        padding:6px 12px;
-        border-radius:6px;
-        cursor:pointer;
-      ">Delete</button>
+      <small>${data.description || ""}</small><br><br>
+
+      ${data.fileUrl ? `<a href="${data.fileUrl}" target="_blank">📄 View PDF</a><br><br>` : ""}
+
+      <button class="editBtn">Edit</button>
+      <button class="deleteBtn">Delete</button>
     `;
 
-    card.querySelector("button").onclick = async () => {
+    /* EDIT */
+    card.querySelector(".editBtn").onclick = () => {
+      document.getElementById("noticeTitle").value = data.title;
+      document.getElementById("noticeDesc").value = data.description || "";
+
+      editId = docSnap.id;
+
+      document.getElementById("formTitle").textContent = "Edit Notice";
+      window.scrollTo({ top:0, behavior:"smooth" });
+    };
+
+    /* DELETE */
+    card.querySelector(".deleteBtn").onclick = async () => {
 
       if(!confirm("Delete this notice?")) return;
 
       try{
-
         if(data.storagePath){
           await deleteObject(ref(storage,data.storagePath));
         }
@@ -163,5 +208,6 @@ async function loadNotices(){
 loadNotices();
 
 </script>
+
 </body>
 </html>
