@@ -37,7 +37,6 @@ input, textarea{
   border-radius:8px;
   border:1px solid #ccc;
   margin-bottom:15px;
-  font-family:'Poppins',sans-serif;
 }
 
 textarea{
@@ -53,7 +52,6 @@ button{
   color:white;
   border-radius:8px;
   cursor:pointer;
-  font-size:15px;
 }
 
 button:hover{
@@ -66,11 +64,7 @@ button:hover{
   background:#dcfce7;
   border-radius:12px;
   color:#166534;
-  font-weight:600;
   text-align:center;
-}
-a:hover{
-  opacity:0.9;
 }
 </style>
 </head>
@@ -98,8 +92,6 @@ import { collection, addDoc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const resultDiv = document.getElementById("result");
-
-// ✅ Define village once
 const VILLAGE_ID = "wandhali";
 
 document.getElementById("submitBtn").onclick = async () => {
@@ -113,7 +105,6 @@ document.getElementById("submitBtn").onclick = async () => {
     return;
   }
 
-  // ✅ Better phone validation
   if(!/^[0-9]{10}$/.test(phone)){
     alert("Enter valid 10-digit mobile number.");
     return;
@@ -124,65 +115,76 @@ document.getElementById("submitBtn").onclick = async () => {
   try{
 
     await addDoc(collection(db,"complaints"),{
-      trackingId: trackingId,
-      name: name,
-      phone: phone,
-      message: message,
-      status: "Submitted",
-      adminNote: "",
-      rejectReason: "",
-      villageId: VILLAGE_ID,   // ✅ IMPORTANT ADDITION
-      createdAt: new Date(),
-      updatedAt: new Date()
+      trackingId,
+      name,
+      phone,
+      message,
+      status:"Submitted",
+      adminNote:"",
+      rejectReason:"",
+      villageId: VILLAGE_ID,
+      createdAt:new Date(),
+      updatedAt:new Date()
     });
 
-    resultDiv.innerHTML = `
-      const whatsappMessage = `Your complaint has been registered successfully.`;
+    // ✅ WhatsApp message
+    const whatsappMessage = `Your complaint has been registered successfully.
 
 Tracking ID: ${trackingId}
 
 Thank you,
 Gram Panchayat Wandhali`;
 
-const whatsappURL = `https://wa.me/91${phone}?text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappURL = `https://wa.me/91${phone}?text=${encodeURIComponent(whatsappMessage)}`;
 
-resultDiv.innerHTML = `
-  <div class="success-box">
+    // ✅ SUCCESS UI
+    resultDiv.innerHTML = `
+      <div class="success-box" id="printArea">
 
-    ✅ Complaint Registered Successfully!<br><br>
+        ✅ Complaint Registered Successfully!<br><br>
 
-    <div style="font-size:14px;">
-      Your Tracking ID:
-    </div>
-    <div style="
-      font-size:18px;
-      font-weight:700;
-      margin:8px 0 15px;
-      color:#166534;
-    ">
-      ${trackingId}
-    </div>
+        <div>Your Tracking ID:</div>
 
-    <div style="font-size:13px;margin-bottom:15px;">
-      Please save this ID for tracking your complaint.
-    </div>
+        <div id="trackingText" style="
+          font-size:20px;
+          font-weight:700;
+          margin:10px 0;
+        ">
+          ${trackingId}
+        </div>
 
-    <a href="${whatsappURL}" target="_blank" style="
-      display:inline-block;
-      padding:10px 18px;
-      background:#25D366;
-      color:white;
-      border-radius:8px;
-      text-decoration:none;
-      font-weight:600;
-    ">
-      📲 Send to WhatsApp
-    </a>
+        <div style="margin-bottom:15px;">
+          Please save this ID.
+        </div>
 
-  </div>
-`;
-          `;
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
 
+          <button onclick="copyTrackingId()" style="background:#0ea5e9;">📋 Copy</button>
+
+          <a href="${whatsappURL}" target="_blank" style="
+            padding:10px;
+            background:#25D366;
+            color:white;
+            border-radius:6px;
+            text-decoration:none;
+          ">📲 WhatsApp</a>
+
+          <a href="track.html" style="
+            padding:10px;
+            background:#1e3a8a;
+            color:white;
+            border-radius:6px;
+            text-decoration:none;
+          ">🔍 Track</a>
+
+          <button onclick="printReceipt()" style="background:#f59e0b;">🖨️ Print</button>
+
+        </div>
+
+      </div>
+    `;
+
+    // clear form
     document.getElementById("name").value="";
     document.getElementById("phone").value="";
     document.getElementById("message").value="";
@@ -194,6 +196,34 @@ resultDiv.innerHTML = `
 
 };
 
+// ✅ COPY
+window.copyTrackingId = function(){
+  const text = document.getElementById("trackingText").innerText;
+  navigator.clipboard.writeText(text);
+  alert("Copied!");
+};
+
+// ✅ PRINT
+window.printReceipt = function(){
+
+  const content = document.getElementById("printArea").innerHTML;
+
+  const win = window.open("", "", "width=600,height=600");
+
+  win.document.write(`
+    <html>
+      <body style="font-family:Poppins;padding:20px;">
+        <h2>Gram Panchayat Wandhali</h2>
+        ${content}
+      </body>
+    </html>
+  `);
+
+  win.document.close();
+  win.print();
+};
+
 </script>
+
 </body>
 </html>
