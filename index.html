@@ -1886,9 +1886,10 @@ async function loadSchemes(){
         ${d.category || "Local"}
       </span>
 
-      <h4>${d.title}</h4>
+      const lang = currentLang;
 
-      <p>${(d.description || "").substring(0,100)}...</p>
+<h4>${d.title?.[lang] || d.title}</h4>
+<p>${d.description?.[lang] || d.description}</p>
 
       <div class="scheme-buttons">
 
@@ -2288,6 +2289,19 @@ document.getElementById("menuBtn").onclick = function(){
 };
 
 </script>  
-  
+
+<div id="google_translate_element" style="position:fixed;bottom:10px;right:10px;z-index:9999;"></div>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'mr,en',
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+  }, 'google_translate_element');
+}
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
