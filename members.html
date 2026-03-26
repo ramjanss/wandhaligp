@@ -313,11 +313,20 @@ footer{
 
 <nav class="gov-navbar">
 <ul class="nav-menu">
+
 <li><a href="index.html">Home</a></li>
+
 <li><a href="members.html" class="active">Leadership</a></li>
+
 <li><a href="schemes.html">Schemes</a></li>
 <li><a href="events.html">Events</a></li>
-<li><a href="gallery.html">Gallery</a></li>
+
+<li><a href="index.html#gallery">Gallery</a></li>
+<li><a href="notices.html">Notices</a></li>
+<li><a href="contact.html">Contact</a></li>
+
+<li><a href="login.html">Admin</a></li>
+
 </ul>
 </nav>
 
@@ -344,11 +353,18 @@ footer{
 
 <script type="module">
 import { db } from "./js/firebase.js";
-import { collection, getDocs } from 
+import { collection, getDocs, query, where } 
+from 
 "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+const GP_ID = "wandhali";   // for this site
 async function loadMembers(){
-const snap=await getDocs(collection(db,"members"));
+const q = query(
+  collection(db,"members"),
+  where("gpid","==",GP_ID)
+);
+
+const snap = await getDocs(q);
 
 const leaderContainer=document.getElementById("leaderContainer");
 const bodyContainer=document.getElementById("bodyContainer");
