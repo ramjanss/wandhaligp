@@ -54,9 +54,18 @@ body{margin:0;font-family:'Noto Sans',sans-serif;color:var(--text);}
 .gov-navbar{
   background:#e9e9e9;
   border-bottom:1px solid #d5d5d5;
+  position:relative;
+  z-index:999;
+}
+
+.nav-container{
+  max-width:100%;
+  margin:auto;
 }
 
 .nav-menu{
+  list-style:none;
+  margin:0;
   padding:0 40px;
   display:flex;
   align-items:center;
@@ -65,15 +74,36 @@ body{margin:0;font-family:'Noto Sans',sans-serif;color:var(--text);}
 
 .nav-menu .right-item{
   margin-left:auto;
+}  
+  
+.nav-menu > li{
+  position:relative;
+  padding-bottom:0;
 }
 
+.nav-menu > li > a{
+  display:block;
+  padding:15px 20px;
+  text-decoration:none;
+  color:#222;
+  font-family:'Noto Sans', sans-serif;
+  font-size:15px;
+  font-weight:500;
+}
+
+.nav-menu > li > a:hover{
+  background:#dcdcdc;
+}
+
+/* ===== MEGA MENU ===== */
+  
 .mega-dropdown{
   position:relative;
 }
 
 .mega-menu{
   position:absolute;
-  top:100%;
+  top:100%;      /* directly under menu item */
   left:0;
   background:#fff;
   display:none;
@@ -81,11 +111,38 @@ body{margin:0;font-family:'Noto Sans',sans-serif;color:var(--text);}
   padding:25px;
   border:1px solid #ddd;
   box-shadow:0 8px 20px rgba(0,0,0,0.08);
+  min-width:650px;
+  z-index:9999;
 }
 
+/* CRITICAL FIX */
 .mega-dropdown:hover .mega-menu,
 .mega-menu:hover{
   display:flex;
+}
+
+.mega-column{
+  display:flex;
+  flex-direction:column;
+  min-width:180px;
+}
+
+.mega-column h4{
+  font-family:'Noto Serif', serif;
+  font-size:16px;
+  margin-bottom:10px;
+  color:#1e3a8a;
+}
+
+.mega-column a{
+  text-decoration:none;
+  color:#333;
+  font-size:14px;
+  padding:5px 0;
+}
+
+.mega-column a:hover{
+  color:#1e3a8a;
 }
 /* PAGE TITLE */
 .page-title{
